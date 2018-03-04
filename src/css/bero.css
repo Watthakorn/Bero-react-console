@@ -1,0 +1,116 @@
+.carousel-inner img {
+    width: 100%;
+    height: 100%;
+    max-height: 500px;
+    max-width: 1100px;
+}
+
+.form-group img {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    max-width: 900px;
+}
+
+.dropdown-menu {
+    max-width: 300px;
+}
+
+.fa {
+    padding-right: 5px;
+}
+
+.main-content {
+    top: 55px;
+    padding-bottom: 30px;
+    right: 0;
+}
+
+.page-title {
+    padding-bottom: 20px;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    padding: 5px;
+    padding-top: 60px;
+    border-style: solid;
+    border-width: 0px;
+    border-right-width: 0.1px;
+    border-color: lightgrey;
+}
+
+.sidebar .nav-link {
+    padding-left: 17px;
+    border-color: lightgray;
+    color: lightslategray;
+}
+
+.sidebar .menu-title {
+    padding-top: 15px;
+    padding-left: 8px;
+    padding-bottom: 5px;
+    color: rgb(138, 138, 138);
+}
+
+.sidebar-fixed {
+    padding: 0;
+    border-width: 0;
+}
+
+.top-title {
+    border-style: solid;
+    border-color: lightgray;
+    border-width: 0px;
+    border-bottom-width: 0.1px;
+}
+
+@media (min-width: 576px) {
+    .card-columns {
+        column-count: 1;
+    }
+}
+
+@media (min-width: 768px) {
+    .card-columns {
+        column-count: 2;
+    }
+}
+
+@media (min-width: 1200px) {
+    .card-columns {
+        column-count: 3;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 16px;
+    }
+    #beroConsole,
+    #topTitle {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 576px) {
+    body {
+        font-size: 14px;
+    }
+    #beroConsole,
+    #topTitle {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 374px) {
+    body {
+        font-size: 12px;
+    }
+    #beroConsole,
+    #topTitle {
+        font-size: 14px;
+    }
+}

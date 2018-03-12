@@ -16,6 +16,10 @@
     max-width: 300px;
 }
 
+.event-card {
+    padding-top: 20px;
+}
+
 .fa {
     padding-right: 5px;
 }

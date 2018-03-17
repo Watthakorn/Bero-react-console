@@ -4,11 +4,9 @@ import secondReducer from "./secondReducer"
 import usersReducer from "./usersReducer"
 import userReducer from "./userReducer"
 
-const combileApp = combineReducers({
+export default combineReducers({
     firstReducer,
     secondReducer,
     usersReducer,
     userReducer
 })
-
-export default combileApp

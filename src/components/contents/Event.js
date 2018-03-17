@@ -42,6 +42,9 @@ class Event extends Component {
 
         reader.readAsDataURL(file)
     }
+    createEvent(e) {
+
+    }
 
     render() {
         let { imagePreviewUrl } = this.state;

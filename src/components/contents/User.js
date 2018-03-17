@@ -1,34 +1,38 @@
 import React, { Component } from 'react';
 import fire from '../../fire';
 import '../../css/bero.css';
+import { connect } from "react-redux";
 
 
-var usersRef = fire.database().ref('users');
+// var usersRef = fire.database().ref('users');
 
-var allUser = [];
+// var allUser = [];
 
-usersRef.on('child_added', snap => {
-    let user = { id: snap.key, data: snap.val() }
-    allUser.push(user);
-    console.log(snap.val());
-});
+// usersRef.on('child_added', snap => {
+//     let user = { id: snap.key, data: snap.val() }
+//     allUser.push(user);
+//     // console.log(snap.val());
+// });
 
 class User extends Component {
-    constructor(props) {
-        super(props);
-        this.state = { users: [] };
-    }
-    componentWillMount() {
-        var usersRef = fire.database().ref('users');
 
+    componentWillMount() {
+        var allUser = [];
+        var usersRef = fire.database().ref('users');
         usersRef.on('child_added', snap => {
             let user = { id: snap.key, data: snap.val() }
-            this.setState({ users: [user].concat(this.state.users) });
-            console.log(snap.val());
+            // this.setState({ users: [user].concat(this.state.users) });
+            // console.log(snap.val());
+            allUser.push(user);
         });
-    }
 
+        this.props.addUsers(allUser);
+        // console.log(allUser);
+    }
     render() {
+
+        const users = this.props.users.users;
+
         return (
             <div>
                 <div className="d-flex justify-content-end">
@@ -39,7 +43,7 @@ class User extends Component {
                     <table className="table table-striped table-sm">
                         <thead>
                             <tr>
-                                <th>FacebookUID</th>
+                                <th>FacebookID</th>
                                 <th>Picture</th>
                                 <th>Name</th>
                                 <th>Score</th>
@@ -47,12 +51,12 @@ class User extends Component {
                             </tr>
                         </thead>
                         <tbody>
-                            <UserRows />
+                            <UserRows allUser={users} />
                         </tbody>
                     </table>
                 </div>
 
-                <UserModals />
+                <UserModals allUser={users} />
 
 
 
@@ -63,10 +67,13 @@ class User extends Component {
 
 function UserRows(props) {
     var userrows = [];
+    var allUser = props.allUser;
+    if (allUser) {
+        for (let index = 0; index < allUser.length; index++) {
+            let user = allUser[index];
+            userrows.push(<UserRow key={user.id} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
+        }
 
-    for (let index = 0; index < allUser.length; index++) {
-        let user = allUser[index];
-        userrows.push(<UserRow key={user.id} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
     }
     return userrows;
 
@@ -86,10 +93,12 @@ function UserRow(props) {
 
 function UserModals(props) {
     var usermodals = [];
-
-    for (let index = 0; index < allUser.length; index++) {
-        let user = allUser[index];
-        usermodals.push(<UserModal key={user.id} profile={user.data.Profile} target={user.id} />);
+    var allUser = props.allUser;
+    if (allUser) {
+        for (let index = 0; index < allUser.length; index++) {
+            let user = allUser[index];
+            usermodals.push(<UserModal key={user.id} profile={user.data.Profile} target={user.id} />);
+        }
     }
     return usermodals;
 
@@ -132,4 +141,24 @@ function UserModal(props) {
 }
 
 
-export default User;
+const mapStateToProps = (state) => {
+    return {
+        users: state.usersReducer
+    }
+}
+const mapDispatchToProps = (dispatch) => {
+    return {
+        addUsers: (users) => {
+            if (users) {
+                dispatch({
+                    type: "USERS_PROFILE_FETCH",
+                    payload: users
+                })
+            }
+        }
+    }
+}
+
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(User);

@@ -4,7 +4,9 @@ import Report from './Report';
 import Informaiton from './Information';
 import User from './User';
 import Event from './Event';
-import { Switch, Route } from 'react-router-dom';
+import { Switch, Route, Redirect } from 'react-router-dom';
+import fire, { auth } from "../../fire";
+import { connect } from "react-redux"
 import '../../css/bero.css';
 
 class Content extends Component {
@@ -14,10 +16,10 @@ class Content extends Component {
 
                 <Switch>
                     <Route exact path='/' component={FirstPage} />
-                    <Route path='/report' component={Report} />
-                    <Route path='/information' component={Informaiton} />
-                    <Route path='/user' component={User} />
-                    <Route path='/event' component={Event} />
+                    <PrivateRoute path='/report' component={Report} />
+                    <PrivateRoute path='/information' component={Informaiton} />
+                    <PrivateRoute path='/user' component={User} />
+                    <PrivateRoute path='/event' component={Event} />
                 </Switch>
 
             </div>
@@ -25,5 +27,38 @@ class Content extends Component {
     }
 }
 
+function isAdmin(user) {
+    var type;
+    if (user) {
+        var userId = auth().currentUser.uid;
+        // console.log(userId);
+        fire.database().ref('/users/' + userId + '/Profile/type').on('value', function (snapshot) {
+            type = snapshot.val();
+        });
+        // console.log(type);
+        if (type === "Admin") {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+
+const PrivateRoute = ({ component: Component, ...rest }) => (
+    <Route {...rest} render={(props) => (
+        isAdmin(auth().currentUser)
+            ? <Component {...props} />
+            : <Redirect to='/' />
+    )}>
+
+    </Route>
+)
+
+// const mapStateToProps = (state) => {
+//     return {
+//         user: state.userReducer
+//     }
+// }
 
 export default Content;

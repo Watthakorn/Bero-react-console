@@ -29,7 +29,7 @@ class FirstPage extends Component {
         usersRef.on('child_added', snap => {
             let user = { id: snap.key, data: snap.val() }
             this.setState({ users: [user].concat(this.state.users) });
-            console.log(snap.val());
+            // console.log(snap.val());
         });
     }
     addMessage(e) {
@@ -38,17 +38,26 @@ class FirstPage extends Component {
         fire.database().ref('messages').push(this.inputEl.value);
         this.inputEl.value = ''; // <- clear the input
     }
+
+    writeUserData(e) {
+        fire.database().ref('messages').push({
+            username: this.inputName.value,
+            email: this.inputEmail.value
+        });
+    }
+
     render() {
         return (
             <div>
-                <form onSubmit={this.addMessage.bind(this)}>
-                    <input type="text" ref={el => this.inputEl = el} />
+                <form onSubmit={this.writeUserData.bind(this)}>
+                    <input type="text" ref={el => this.inputName = el} />
+                    <input type="text" ref={email => this.inputEmail = email} />
                     <input type="submit" />
                 </form>
 
                 <ul>
                     { /* Render the list of messages */
-                        this.state.messages.map(message => <li key={message.id}>{message.id} {message.text}</li>)
+                        this.state.messages.map(message => <li key={message.id}>{message.id} {JSON.stringify(message.text)}</li>)
                     }
                 </ul>
 

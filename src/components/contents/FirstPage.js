@@ -1,6 +1,64 @@
 import React, { Component } from 'react';
 import fire from '../../fire';
 import '../../css/bero.css';
+import { compose, withProps, lifecycle } from "recompose"
+import { withScriptjs, withGoogleMap, GoogleMap, Marker } from "react-google-maps"
+import { connect } from "react-redux"
+
+
+var positionFirst = {
+    lat: 13.719349,
+    lng: 100.781223
+};
+const MyMapComponent = compose(
+    withProps({
+        googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyA3fh0e8ySFm2m3oo1IyR9RVyAUOCu2Lx4&v=3.exp&libraries=geometry,drawing,places",
+        loadingElement: <div style={{ height: `100%` }} />,
+        containerElement: <div style={{ height: `400px` }} />,
+        mapElement: <div style={{ height: `100%`, width: '500px' }} />,
+    }),
+    lifecycle({
+        componentWillMount() {
+            const refs = {}
+
+            this.setState({
+                position: null,
+                onMarkerMounted: ref => {
+                    refs.marker = ref;
+                },
+
+                onPositionChanged: () => {
+                    const position = refs.marker.getPosition();
+                    // console.log(position.toString());
+                    positionFirst = {
+                        lat: position.lat(),
+                        lng: position.lng()
+                    }
+
+                    this.props.mapProps.changePosition(positionFirst);
+                    // console.log(this.props.mapProps.markerPosition);
+                    // console.log(positionFirst);
+                }
+            })
+
+        },
+    }),
+    withScriptjs,
+    withGoogleMap
+)((props) =>
+    <GoogleMap
+        defaultZoom={8}
+        defaultCenter={positionFirst}
+    >
+        {props.isMarkerShown &&
+            <Marker position={positionFirst}
+                draggable={true}
+                ref={props.onMarkerMounted}
+                onDragEnd={props.onPositionChanged}
+            />}
+    </GoogleMap>
+)
+
 
 
 class FirstPage extends Component {
@@ -11,8 +69,6 @@ class FirstPage extends Component {
             users: []
         }; // <- set up react state
     }
-
-
 
 
     componentWillMount() {
@@ -31,6 +87,8 @@ class FirstPage extends Component {
             this.setState({ users: [user].concat(this.state.users) });
             // console.log(snap.val());
         });
+        this.props.changePosition(positionFirst);
+        // console.log(this.props)
     }
     addMessage(e) {
         e.preventDefault(); // <- prevent form submit from reloading the page
@@ -54,6 +112,10 @@ class FirstPage extends Component {
                     <input type="text" ref={email => this.inputEmail = email} />
                     <input type="submit" />
                 </form>
+                {JSON.stringify(this.props.markerPosition)}
+                <MyMapComponent isMarkerShown mapProps={this.props} />
+                {/* <MyMapComponent isMarkerShown />// Map with a Marker
+                <MyMapComponent isMarkerShown={false} />// Just only Map */}
 
                 <ul>
                     { /* Render the list of messages */
@@ -84,5 +146,22 @@ function TestAdd(params) {
 
 }
 
+const mapStateToProps = (state) => {
 
-export default FirstPage;
+    // console.log(state)
+    return {
+        markerPosition: state.positionReducer
+    }
+}
+const mapDispatchToProps = (dispatch) => {
+    return {
+        changePosition: (position) => {
+            dispatch({
+                type: "CHANGE_LOCATION",
+                payload: position
+            })
+        }
+    }
+}
+connect(mapStateToProps, mapDispatchToProps)(MyMapComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(FirstPage);

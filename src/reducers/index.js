@@ -1,11 +1,11 @@
 import { combineReducers } from "redux"
-import firstReducer from "./firstReducer"
+import positionReducer from "./positionReducer"
 import secondReducer from "./secondReducer"
 import usersReducer from "./usersReducer"
 import userReducer from "./userReducer"
 
 export default combineReducers({
-    firstReducer,
+    positionReducer,
     secondReducer,
     usersReducer,
     userReducer

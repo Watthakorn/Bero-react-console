@@ -1,6 +1,63 @@
 import React, { Component } from 'react';
+import fire from '../../fire';
 import '../../css/bero.css';
+import { compose, withProps, lifecycle } from "recompose"
+import { withScriptjs, withGoogleMap, GoogleMap, Marker } from "react-google-maps"
+import { connect } from "react-redux"
 
+
+var positionFirst = {
+    lat: 13.719349,
+    lng: 100.781223
+};
+const MyMapComponent = compose(
+    withProps({
+        googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyA3fh0e8ySFm2m3oo1IyR9RVyAUOCu2Lx4&v=3.exp&libraries=geometry,drawing,places",
+        loadingElement: <div style={{ height: `100%` }} />,
+        containerElement: <div style={{ height: `300px` }} />,
+        mapElement: <div style={{ height: `100%`, width: '100%' }} />,
+    }),
+    lifecycle({
+        componentWillMount() {
+            const refs = {}
+
+            this.setState({
+                position: null,
+                onMarkerMounted: ref => {
+                    refs.marker = ref;
+                },
+
+                onPositionChanged: () => {
+                    const position = refs.marker.getPosition();
+                    // console.log(position.toString());
+                    positionFirst = {
+                        lat: position.lat(),
+                        lng: position.lng()
+                    }
+
+                    this.props.mapProps.changePosition(positionFirst);
+                    console.log(this.props.mapProps.markerPosition);
+                    // console.log(positionFirst);
+                }
+            })
+
+        },
+    }),
+    withScriptjs,
+    withGoogleMap
+)((props) =>
+    <GoogleMap
+        defaultZoom={8}
+        defaultCenter={positionFirst}
+    >
+        {props.isMarkerShown &&
+            <Marker position={positionFirst}
+                draggable={true}
+                ref={props.onMarkerMounted}
+                onDragEnd={props.onPositionChanged}
+            />}
+    </GoogleMap>
+)
 
 var allEvent = [0, 1, 2, 3, 4]
 
@@ -24,7 +81,43 @@ class Event extends Component {
     _handleSubmit(e) {
         e.preventDefault();
         // TODO: do something with -> this.state.file
+        var storage = fire.storage();
+        var uploadTask = storage.ref("event/" + this.state.file.name).put(this.state.file);
+        var task2 = storage.ref();
+
+
+        //upload to database will go here image will name with ID or Name of event
+        //then use below function for get URL
+
+        // task2.child('event/' + this.state.file.name).getDownloadURL().then(function (url) {
+        //     console.log(url)
+        // })
+
+
+
+        uploadTask.on('state_changed', function (snapshot) {
+            // Observe state change events such as progress, pause, and resume
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log('Upload is ' + progress + '% done');
+
+
+        }, function (error) {
+            // Handle unsuccessful uploads
+        }, function () {
+            // Handle successful uploads on complete
+            // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+            var downloadURL = uploadTask.snapshot.downloadURL;
+            console.log(downloadURL);
+
+        });
+
+
+        console.log(this.props.markerPosition);
         console.log('handle uploading-', this.state.file);
+        console.log(this.state);
+
+
     }
 
     _handleImageChange(e) {
@@ -72,7 +165,6 @@ class Event extends Component {
                 <EventModals />
 
 
-
                 {/* <!-- Create Event modal or move modal to here --> */}
                 {/* <CreateEventModal imageevent={this.state.image} /> */}
                 <div className="modal fade" id="createEventModal" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" >
@@ -84,8 +176,12 @@ class Event extends Component {
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
+
+
+
+
                             {/* <!-- Form --> */}
-                            <form>
+                            <form onSubmit={(e) => this._handleSubmit(e)} >
                                 <div className="modal-body">
                                     <div className="form-row">
                                         <div className="form-group col-12">
@@ -130,7 +226,7 @@ class Event extends Component {
                                         {/* <!-- Form map --> */}
                                         <div className="form-group col-lg-6">
                                             <label htmlFor="mapEvent">Position</label>
-                                            <div id="mapEvent">My map will go here</div>
+                                            <MyMapComponent isMarkerShown mapProps={this.props} />
                                         </div>
                                     </div>
                                 </div>
@@ -142,13 +238,12 @@ class Event extends Component {
                             </form>
                             {/* <!-- End Form Event --> */}
 
+
+
+
                         </div>
                     </div>
                 </div>
-
-
-
-
             </div>
         );
     }
@@ -257,13 +352,25 @@ function EventModal(props) {
 
 }
 
-// function CreateEventModal(props) {
-//     return (
-//         ""
-//     );
 
-// }
+const mapStateToProps = (state) => {
+
+    // console.log(state)
+    return {
+        markerPosition: state.positionReducer
+    }
+}
+const mapDispatchToProps = (dispatch) => {
+    return {
+        changePosition: (position) => {
+            dispatch({
+                type: "CHANGE_LOCATION",
+                payload: position
+            })
+        }
+    }
+}
 
 
 
-export default Event;
+export default connect(mapStateToProps, mapDispatchToProps)(Event);

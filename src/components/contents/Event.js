@@ -81,41 +81,58 @@ class Event extends Component {
     _handleSubmit(e) {
         e.preventDefault();
         // TODO: do something with -> this.state.file
+        var state = this.state;
+        var props = this.props;
         var storage = fire.storage();
-        var uploadTask = storage.ref("event/" + this.state.file.name).put(this.state.file);
-        var task2 = storage.ref();
+        var eventRef = storage.ref("event");
+        var fileName = state.file.name;
+        var imageRef = eventRef.child(fileName);
+        var markerPosition = props.markerPosition;
+
+        imageRef.getDownloadURL().then(onResolve, onReject);
+
+        //if file name already exists
+        function onResolve(foundURL) {
+            fileName = fileName + "_dup"
+            imageRef = eventRef.child(fileName);
+            imageRef.getDownloadURL().then(onResolve, onReject);
+
+        }
+        // if file name is unique
+        function onReject(error) {
+
+            var uploadTask = imageRef.put(state.file);
+            var downloadURL;
+            // use in uploadTask complete
+
+            uploadTask.on('state_changed', function (snapshot) {
+                // Observe state change events such as progress, pause, and resume
+                // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log('Upload is ' + progress + '% done');
 
 
-        //upload to database will go here image will name with ID or Name of event
-        //then use below function for get URL
-
-        // task2.child('event/' + this.state.file.name).getDownloadURL().then(function (url) {
-        //     console.log(url)
-        // })
-
-
-
-        uploadTask.on('state_changed', function (snapshot) {
-            // Observe state change events such as progress, pause, and resume
-            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-            var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log('Upload is ' + progress + '% done');
+            }, function (error) {
+                // Handle unsuccessful uploads
+            }, function () {
+                // Handle successful uploads on complete
+                // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+                downloadURL = uploadTask.snapshot.downloadURL;
+                console.log(downloadURL);
+                console.log(markerPosition);
 
 
-        }, function (error) {
-            // Handle unsuccessful uploads
-        }, function () {
-            // Handle successful uploads on complete
-            // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-            var downloadURL = uploadTask.snapshot.downloadURL;
-            console.log(downloadURL);
+                //insert database will go here
 
-        });
+            });
+        }
 
 
-        console.log(this.props.markerPosition);
-        console.log('handle uploading-', this.state.file);
-        console.log(this.state);
+
+
+        // console.log(markerPosition);
+        // console.log('handle uploading-', state.file);
+        // console.log(state);
 
 
     }
@@ -352,6 +369,9 @@ function EventModal(props) {
 
 }
 
+function testA() {
+    console.log("This form testA");
+}
 
 const mapStateToProps = (state) => {
 

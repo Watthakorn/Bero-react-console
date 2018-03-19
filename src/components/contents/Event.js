@@ -12,7 +12,7 @@ var positionFirst = {
 };
 var allEvent = [0, 1, 2, 3, 4];
 var today = new Date();
-var todayDate = today.getFullYear() + '-' + (today.getMonth() < 10 ? '0' + today.getMonth() : today.getMonth()) + '-' + today.getDate();
+var todayDate = today.getFullYear() + '-' + ((today.getMonth() + 1) < 10 ? '0' + (today.getMonth() + 1) : today.getMonth() + 1) + '-' + today.getDate();
 
 class Event extends Component {
     // constructor(props) {
@@ -53,6 +53,7 @@ class Event extends Component {
         this.setState({
             [name]: value
         });
+        // console.log((new Date('2018-02-01')).getDate())
         // console.log(this.state.startDate)
         // console.log(this.state[name]);
     }
@@ -115,6 +116,12 @@ class Event extends Component {
                 downloadURL = uploadTask.snapshot.downloadURL;
                 // console.log(downloadURL);
                 // console.log(markerPosition);
+                var startDate = new Date(state.startDate);
+                var endDate = new Date(state.endDate);
+
+                var formatStartDate = startDate.getDate() + '/' + (startDate.getMonth() + 1) + '/' + startDate.getFullYear();
+                var formatEndDate = endDate.getDate() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getFullYear();
+
 
 
                 //database push HERE
@@ -134,7 +141,7 @@ class Event extends Component {
                     ownerUid: "none",
                     rated: 0,
                     requestType: 'Event',
-                    timeEvent: state.startDate + ' to ' + state.endDate,
+                    timeEvent: formatStartDate + '-' + formatEndDate,
                     status: 'in-progress',
                     topic: state.eventName,
                     type: 'Event',

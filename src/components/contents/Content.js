@@ -47,8 +47,8 @@ function isAdmin(user) {
 
 const PrivateRoute = ({ component: Component, ...rest }) => (
     <Route {...rest} render={(props) => (
-        // isAdmin(auth().currentUser)
-        true
+        isAdmin(auth().currentUser)
+            // true
             ? <Component {...props} />
             : <Redirect to='/' />
     )}>

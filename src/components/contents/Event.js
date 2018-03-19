@@ -10,7 +10,9 @@ var positionFirst = {
     lat: 13.719349,
     lng: 100.781223
 };
-var allEvent = [0, 1, 2, 3, 4]
+var allEvent = [0, 1, 2, 3, 4];
+var today = new Date();
+var todayDate = today.getFullYear() + '-' + (today.getMonth() < 10 ? '0' + today.getMonth() : today.getMonth()) + '-' + today.getDate();
 
 class Event extends Component {
     // constructor(props) {
@@ -31,8 +33,8 @@ class Event extends Component {
             imagePreviewUrl: 'no-img.png',
             eventName: '',
             paticipant: 10,
-            startDate: '2018-03-22',
-            endDate: '2018-03-22',
+            startDate: todayDate,
+            endDate: todayDate,
             detail: '',
             showModal: true,
             progressBar: '',
@@ -41,9 +43,27 @@ class Event extends Component {
         };
     }
 
+
+
+
+    _handleInputChange(event) {
+        const target = event.target;
+        const value = target.value;
+        const name = target.name;
+        this.setState({
+            [name]: value
+        });
+        // console.log(this.state.startDate)
+        // console.log(this.state[name]);
+    }
+
+
+
+
     _handleSubmit(e) {
         e.preventDefault();
-        console.log(e.target);
+        // console.log(e.target);
+
 
         // TODO: do something with -> this.state.file
         var thisState = this;
@@ -67,6 +87,7 @@ class Event extends Component {
         }
         // if file name is unique
         function onReject(error) {
+
             thisState.setState({
                 disabled: true
             })
@@ -139,6 +160,10 @@ class Event extends Component {
 
     }
 
+
+
+
+
     _handleImageChange(e) {
         // console.log(e.target.files);
         e.preventDefault();
@@ -156,16 +181,24 @@ class Event extends Component {
 
         reader.readAsDataURL(file)
     }
-    _handleInputChange(event) {
-        const target = event.target;
-        const value = target.value;
-        const name = target.name;
+    // _handleDone(event) {
+    //     event.preventDefault();
 
-        this.setState({
-            [name]: value
-        });
-        // console.log(this.state[name]);
-    }
+    //     this.setState = {
+    //         file: '',
+    //         imagePreviewUrl: 'no-img.png',
+    //         eventName: '',
+    //         paticipant: 10,
+    //         startDate: '',
+    //         endDate: '',
+    //         detail: '',
+    //         showModal: true,
+    //         progressBar: '',
+    //         disabled: false,
+    //         showCreate: true
+    //     };
+
+    // }
 
     render() {
         let { imagePreviewUrl } = this.state;
@@ -195,7 +228,7 @@ class Event extends Component {
 
                 {/* <!-- Create Event modal or move modal to here --> */}
                 {/* <CreateEventModal imageevent={this.state.image} /> */}
-                <div className="modal fade" id="createEventModal" role="dialog" show='true' aria-labelledby="exampleModalCenterTitle" aria-hidden="true" >
+                <div className="modal fade" id="createEventModal" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" >
                     <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -216,52 +249,114 @@ class Event extends Component {
 
                                             <label htmlFor="imgInp">Image :</label>
 
-                                            <input type="file" id="imgInp" onChange={(e) => this._handleImageChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
+                                            <input type="file"
+                                                id="imgInp"
+                                                onChange={(e) => this._handleImageChange(e)}
+                                                disabled={(this.state.disabled) ? "disabled" : ""}
+                                                required
+                                            />
 
-                                            <img id="img-upload" src={imagePreviewUrl} className="mx-auto d-block" alt="Image" width="900" height="400" />
+                                            <img id="img-upload"
+                                                src={imagePreviewUrl}
+                                                className="mx-auto d-block"
+                                                alt="Image"
+                                                width="900"
+                                                height="400"
+                                            />
                                         </div>
                                     </div>
                                     <div className="form-row">
                                         {/* <!-- Form Input --> */}
                                         <div className="form-group col-lg-6">
-
+                                            {/* eventName & paticipant */}
                                             <div className="form-row">
                                                 <div className="form-group col-sm-8">
                                                     <label htmlFor="eventName">Event Name</label>
-                                                    <input type="text" className="form-control" name="eventName" value={this.state.eventName} onChange={(e) => this._handleInputChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
+                                                    <input type="text"
+                                                        className="form-control"
+                                                        name="eventName"
+                                                        value={this.state.eventName}
+                                                        onChange={(e) => this._handleInputChange(e)}
+                                                        disabled={(this.state.disabled) ? "disabled" : ""}
+                                                        required
+                                                    />
                                                 </div>
                                                 <div className="form-group col-sm-4">
                                                     <label htmlFor="participant">Participant</label>
-                                                    <input type="number" className="form-control" name="paticipant" value={this.state.paticipant} onChange={(e) => this._handleInputChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
+                                                    <input type="number"
+                                                        className="form-control"
+                                                        name="paticipant"
+                                                        value={this.state.paticipant}
+                                                        onChange={(e) => this._handleInputChange(e)}
+                                                        disabled={(this.state.disabled) ? "disabled" : ""}
+                                                        required
+                                                    />
                                                 </div>
                                             </div>
-                                            {/* <!-- datepicker not working will use datepicker.js instead --> */}
+
+
+                                            {/* <!-- if datepicker not work will use datepicker.js instead --> */}
+
+
+                                            {/* startDate & endDate */}
                                             <div className="form-row">
                                                 <div className="form-group col-sm-6">
                                                     <label htmlFor="startDate">Start</label>
-                                                    <input className="form-control" type="date" name="startDate" value={this.state.startDate} onChange={(e) => this._handleInputChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
+                                                    <input className="form-control"
+                                                        type="date"
+                                                        name="startDate"
+                                                        min={todayDate}
+                                                        value={this.state.startDate}
+                                                        onChange={(e) => this._handleInputChange(e)}
+                                                        disabled={(this.state.disabled) ? "disabled" : ""}
+                                                        required
+                                                    />
                                                 </div>
                                                 <div className="form-group col-sm-6">
                                                     <label htmlFor="endDate">End</label>
-                                                    <input className="form-control" type="date" name="endDate" value={this.state.endDate} onChange={(e) => this._handleInputChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
+                                                    <input className="form-control"
+                                                        type="date"
+                                                        name="endDate"
+                                                        min={this.state.startDate}
+                                                        value={this.state.endDate < this.state.startDate ? this.state.startDate : this.state.endDate}
+                                                        onChange={(e) => this._handleInputChange(e)}
+                                                        disabled={(this.state.disabled) ? "disabled" : ""}
+                                                        required
+                                                    />
                                                 </div>
                                             </div>
+
+
+                                            {/* detail */}
                                             <div className="form-group">
                                                 <label htmlFor="detail">Detail</label>
-                                                <textarea className="form-control" name="detail" value={this.state.detail} onChange={(e) => this._handleInputChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
+                                                <textarea className="form-control"
+                                                    name="detail"
+                                                    value={this.state.detail}
+                                                    onChange={(e) => this._handleInputChange(e)}
+                                                    disabled={(this.state.disabled) ? "disabled" : ""}
+                                                    required
+                                                />
                                             </div>
                                         </div>
+
+
                                         {/* <!-- Form map --> */}
                                         <div className="form-group col-lg-6">
                                             <label htmlFor="mapEvent">Position</label>
                                             <MyMapComponent isMarkerShown mapProps={this.props} />
                                         </div>
-                                    </div>
-                                    <div className="progress">
-                                        <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: this.state.progressBar }} />
+
+
+                                        {/* progress bar */}
+                                        <div className="progress col-12">
+                                            <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: this.state.progressBar }} />
+                                        </div>
                                     </div>
                                 </div>
 
+
+                                {/* footer button */}
                                 {this.state.showCreate ?
                                     <div className="modal-footer">
                                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -271,7 +366,6 @@ class Event extends Component {
                                     <div className="modal-footer">
                                         <button type="submit" className="btn btn-primary" data-dismiss="modal"> Done</button>
                                     </div>}
-
                             </form>
                             {/* <!-- End Form Event --> */}
 

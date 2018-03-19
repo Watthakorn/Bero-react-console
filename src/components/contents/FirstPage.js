@@ -93,6 +93,7 @@ class FirstPage extends Component {
     addMessage(e) {
         e.preventDefault(); // <- prevent form submit from reloading the page
         /* Send the message to Firebase */
+        console.log(this.inputEl)
         fire.database().ref('messages').push(this.inputEl.value);
         this.inputEl.value = ''; // <- clear the input
     }
@@ -163,5 +164,4 @@ const mapDispatchToProps = (dispatch) => {
         }
     }
 }
-connect(mapStateToProps, mapDispatchToProps)(MyMapComponent);
 export default connect(mapStateToProps, mapDispatchToProps)(FirstPage);

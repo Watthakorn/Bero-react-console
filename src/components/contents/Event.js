@@ -10,55 +10,6 @@ var positionFirst = {
     lat: 13.719349,
     lng: 100.781223
 };
-const MyMapComponent = compose(
-    withProps({
-        googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyA3fh0e8ySFm2m3oo1IyR9RVyAUOCu2Lx4&v=3.exp&libraries=geometry,drawing,places",
-        loadingElement: <div style={{ height: `100%` }} />,
-        containerElement: <div style={{ height: `300px` }} />,
-        mapElement: <div style={{ height: `100%`, width: '100%' }} />,
-    }),
-    lifecycle({
-        componentWillMount() {
-            const refs = {}
-
-            this.setState({
-                position: null,
-                onMarkerMounted: ref => {
-                    refs.marker = ref;
-                },
-
-                onPositionChanged: () => {
-                    const position = refs.marker.getPosition();
-                    // console.log(position.toString());
-                    positionFirst = {
-                        lat: position.lat(),
-                        lng: position.lng()
-                    }
-
-                    this.props.mapProps.changePosition(positionFirst);
-                    console.log(this.props.mapProps.markerPosition);
-                    // console.log(positionFirst);
-                }
-            })
-
-        },
-    }),
-    withScriptjs,
-    withGoogleMap
-)((props) =>
-    <GoogleMap
-        defaultZoom={8}
-        defaultCenter={positionFirst}
-    >
-        {props.isMarkerShown &&
-            <Marker position={positionFirst}
-                draggable={true}
-                ref={props.onMarkerMounted}
-                onDragEnd={props.onPositionChanged}
-            />}
-    </GoogleMap>
-)
-
 var allEvent = [0, 1, 2, 3, 4]
 
 class Event extends Component {
@@ -75,12 +26,27 @@ class Event extends Component {
     // }
     constructor(props) {
         super(props);
-        this.state = { file: '', imagePreviewUrl: 'no-img.png' };
+        this.state = {
+            file: '',
+            imagePreviewUrl: 'no-img.png',
+            eventName: '',
+            paticipant: 10,
+            startDate: '2018-03-22',
+            endDate: '2018-03-22',
+            detail: '',
+            showModal: true,
+            progressBar: '',
+            disabled: false,
+            showCreate: true
+        };
     }
 
     _handleSubmit(e) {
         e.preventDefault();
+        console.log(e.target);
+
         // TODO: do something with -> this.state.file
+        var thisState = this;
         var state = this.state;
         var props = this.props;
         var storage = fire.storage();
@@ -88,6 +54,7 @@ class Event extends Component {
         var fileName = state.file.name;
         var imageRef = eventRef.child(fileName);
         var markerPosition = props.markerPosition;
+        var databaseRef = fire.database().ref('requests');
 
         imageRef.getDownloadURL().then(onResolve, onReject);
 
@@ -100,6 +67,9 @@ class Event extends Component {
         }
         // if file name is unique
         function onReject(error) {
+            thisState.setState({
+                disabled: true
+            })
 
             var uploadTask = imageRef.put(state.file);
             var downloadURL;
@@ -109,7 +79,11 @@ class Event extends Component {
                 // Observe state change events such as progress, pause, and resume
                 // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
                 var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                console.log('Upload is ' + progress + '% done');
+                // console.log('Upload is ' + progress + '% done');
+                thisState.setState({
+                    progressBar: progress + "%"
+                });
+                // console.log(state.progressText)
 
 
             }, function (error) {
@@ -118,15 +92,43 @@ class Event extends Component {
                 // Handle successful uploads on complete
                 // For instance, get the download URL: https://firebasestorage.googleapis.com/...
                 downloadURL = uploadTask.snapshot.downloadURL;
-                console.log(downloadURL);
-                console.log(markerPosition);
+                // console.log(downloadURL);
+                // console.log(markerPosition);
 
 
-                //insert database will go here
+                //database push HERE
+                databaseRef.push({
+                    detail: state.detail,
+                    facebookUid: '0000000000',
+                    hero: state.paticipant,
+                    heroAccepted: 0,
+                    imageUrl: downloadURL,
+                    mark_position: {
+                        latitude: markerPosition.lat,
+                        longitude: markerPosition.lng
+                    },
+                    must_be: 'all',
+                    ownerName: 'none',
+                    ownerprofilePicture: "http://graph.facebook.com/1449629778454500/picture?type=square",
+                    ownerUid: "none",
+                    rated: 0,
+                    requestType: 'Event',
+                    timeEvent: state.startDate + ' to ' + state.endDate,
+                    status: 'in-progress',
+                    topic: state.eventName,
+                    type: 'Event',
+                    view: 'Pubilc',
+                    when: Date.now()
 
+
+                })
+
+
+                thisState.setState({
+                    showCreate: false
+                })
             });
         }
-
 
 
 
@@ -138,7 +140,9 @@ class Event extends Component {
     }
 
     _handleImageChange(e) {
+        // console.log(e.target.files);
         e.preventDefault();
+        // console.log(e.target);
 
         let reader = new FileReader();
         let file = e.target.files[0];
@@ -152,8 +156,15 @@ class Event extends Component {
 
         reader.readAsDataURL(file)
     }
-    createEvent(e) {
+    _handleInputChange(event) {
+        const target = event.target;
+        const value = target.value;
+        const name = target.name;
 
+        this.setState({
+            [name]: value
+        });
+        // console.log(this.state[name]);
     }
 
     render() {
@@ -184,7 +195,7 @@ class Event extends Component {
 
                 {/* <!-- Create Event modal or move modal to here --> */}
                 {/* <CreateEventModal imageevent={this.state.image} /> */}
-                <div className="modal fade" id="createEventModal" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" >
+                <div className="modal fade" id="createEventModal" role="dialog" show='true' aria-labelledby="exampleModalCenterTitle" aria-hidden="true" >
                     <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -205,7 +216,7 @@ class Event extends Component {
 
                                             <label htmlFor="imgInp">Image :</label>
 
-                                            <input type="file" id="imgInp" onChange={(e) => this._handleImageChange(e)} />
+                                            <input type="file" id="imgInp" onChange={(e) => this._handleImageChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
 
                                             <img id="img-upload" src={imagePreviewUrl} className="mx-auto d-block" alt="Image" width="900" height="400" />
                                         </div>
@@ -217,27 +228,27 @@ class Event extends Component {
                                             <div className="form-row">
                                                 <div className="form-group col-sm-8">
                                                     <label htmlFor="eventName">Event Name</label>
-                                                    <input type="text" className="form-control" id="eventName" />
+                                                    <input type="text" className="form-control" name="eventName" value={this.state.eventName} onChange={(e) => this._handleInputChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
                                                 </div>
                                                 <div className="form-group col-sm-4">
-                                                    <label htmlFor="inputParticipant">Participant</label>
-                                                    <input type="number" id="inputParticipant" className="form-control" min="1" />
+                                                    <label htmlFor="participant">Participant</label>
+                                                    <input type="number" className="form-control" name="paticipant" value={this.state.paticipant} onChange={(e) => this._handleInputChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
                                                 </div>
                                             </div>
                                             {/* <!-- datepicker not working will use datepicker.js instead --> */}
                                             <div className="form-row">
                                                 <div className="form-group col-sm-6">
-                                                    <label htmlFor="start-date">Start</label>
-                                                    <input className="form-control" type="date" id="start-date" />
+                                                    <label htmlFor="startDate">Start</label>
+                                                    <input className="form-control" type="date" name="startDate" value={this.state.startDate} onChange={(e) => this._handleInputChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
                                                 </div>
                                                 <div className="form-group col-sm-6">
-                                                    <label htmlFor="end-date">End</label>
-                                                    <input className="form-control" type="date" id="end-date" />
+                                                    <label htmlFor="endDate">End</label>
+                                                    <input className="form-control" type="date" name="endDate" value={this.state.endDate} onChange={(e) => this._handleInputChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
                                                 </div>
                                             </div>
                                             <div className="form-group">
-                                                <label htmlFor="detail-text">Detail</label>
-                                                <textarea className="form-control" id="detail-text"></textarea>
+                                                <label htmlFor="detail">Detail</label>
+                                                <textarea className="form-control" name="detail" value={this.state.detail} onChange={(e) => this._handleInputChange(e)} disabled={(this.state.disabled) ? "disabled" : ""} required />
                                             </div>
                                         </div>
                                         {/* <!-- Form map --> */}
@@ -246,12 +257,21 @@ class Event extends Component {
                                             <MyMapComponent isMarkerShown mapProps={this.props} />
                                         </div>
                                     </div>
+                                    <div className="progress">
+                                        <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: this.state.progressBar }} />
+                                    </div>
                                 </div>
 
-                                <div className="modal-footer">
-                                    <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                                    <button type="submit" className="btn btn-primary"> Create</button>
-                                </div>
+                                {this.state.showCreate ?
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        <button type="submit" className="btn btn-primary"> Create</button>
+                                    </div>
+                                    :
+                                    <div className="modal-footer">
+                                        <button type="submit" className="btn btn-primary" data-dismiss="modal"> Done</button>
+                                    </div>}
+
                             </form>
                             {/* <!-- End Form Event --> */}
 
@@ -265,6 +285,11 @@ class Event extends Component {
         );
     }
 }
+
+
+
+
+
 
 function Slide(props) {
     return (
@@ -311,6 +336,11 @@ function Slide(props) {
 
 
 
+
+
+
+
+
 function EventCards(props) {
 
     var eventcards = [];
@@ -334,6 +364,12 @@ function EventCard(props) {
     );
 
 }
+
+
+
+
+
+
 
 
 function EventModals(props) {
@@ -369,9 +405,85 @@ function EventModal(props) {
 
 }
 
-function testA() {
-    console.log("This form testA");
-}
+// function testA() {
+//     console.log("This form testA");
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+const MyMapComponent = compose(
+    withProps({
+        googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyA3fh0e8ySFm2m3oo1IyR9RVyAUOCu2Lx4&v=3.exp&libraries=geometry,drawing,places",
+        loadingElement: <div style={{ height: `100%` }} />,
+        containerElement: <div style={{ height: `300px` }} />,
+        mapElement: <div style={{ height: `100%`, width: '100%' }} />,
+    }),
+    lifecycle({
+        componentWillMount() {
+            const refs = {}
+
+            this.setState({
+                position: null,
+                onMarkerMounted: ref => {
+                    refs.marker = ref;
+                },
+
+                onPositionChanged: () => {
+                    const position = refs.marker.getPosition();
+                    // console.log(position.toString());
+                    positionFirst = {
+                        lat: position.lat(),
+                        lng: position.lng()
+                    }
+
+                    this.props.mapProps.changePosition(positionFirst);
+
+
+                    // console.log(this.props.mapProps.markerPosition);
+                    // console.log(positionFirst);
+                }
+            })
+
+        },
+    }),
+    withScriptjs,
+    withGoogleMap
+)((props) =>
+    <GoogleMap
+        defaultZoom={8}
+        defaultCenter={positionFirst}
+    >
+        {props.isMarkerShown &&
+            <Marker position={positionFirst}
+                draggable={true}
+                ref={props.onMarkerMounted}
+                onDragEnd={props.onPositionChanged}
+            />}
+    </GoogleMap>
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const mapStateToProps = (state) => {
 

@@ -75,7 +75,7 @@ class Event extends Component {
         var fileName = state.file.name;
         var imageRef = eventRef.child(fileName);
         var markerPosition = props.markerPosition;
-        var databaseRef = fire.database().ref('requests');
+        var databaseRef = fire.database().ref('reqevent');
 
         imageRef.getDownloadURL().then(onResolve, onReject);
 
@@ -190,6 +190,24 @@ class Event extends Component {
     }
     // _handleDone(event) {
     //     event.preventDefault();
+
+    //     this.setState = {
+    //         file: '',
+    //         imagePreviewUrl: 'no-img.png',
+    //         eventName: '',
+    //         paticipant: 10,
+    //         startDate: '',
+    //         endDate: '',
+    //         detail: '',
+    //         showModal: true,
+    //         progressBar: '',
+    //         disabled: false,
+    //         showCreate: true
+    //     };
+    // }
+
+    // _handleOnClear(e) {
+    //     e.preventDefault();
 
     //     this.setState = {
     //         file: '',
@@ -371,7 +389,8 @@ class Event extends Component {
                                     </div>
                                     :
                                     <div className="modal-footer">
-                                        <button type="submit" className="btn btn-primary" data-dismiss="modal"> Done</button>
+                                        {/* <button type="button" className="btn btn-primary" onClick={(e) => this._handleOnClear(e)}> Clear</button> */}
+                                        <button type="button" className="btn btn-success" data-dismiss="modal"> Done</button>
                                     </div>}
                             </form>
                             {/* <!-- End Form Event --> */}
@@ -524,7 +543,7 @@ function EventModal(props) {
 
 const MyMapComponent = compose(
     withProps({
-        googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyA3fh0e8ySFm2m3oo1IyR9RVyAUOCu2Lx4&v=3.exp&libraries=geometry,drawing,places",
+        googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyCTYHNPsOIlGpD30J91XzKH-NDzqpUA71M&v=3.exp&libraries=geometry,drawing,places",
         loadingElement: <div style={{ height: `100%` }} />,
         containerElement: <div style={{ height: `300px` }} />,
         mapElement: <div style={{ height: `100%`, width: '100%' }} />,

@@ -29,9 +29,16 @@ class User extends Component {
         this.props.addUsers(allUser);
         // console.log(allUser);
     }
+
+    _handleSave(e) {
+        console.log(e.target.type);
+        console.log("hey wake up!");
+    }
+
     render() {
 
-        const users = this.props.users.users;
+        const props = this.props;
+        const users = props.users.users;
 
         return (
             <div>
@@ -56,7 +63,7 @@ class User extends Component {
                     </table>
                 </div>
 
-                <UserModals allUser={users} />
+                <UserModals allUser={users} onClick={(e) => this._handleSave(e)} />
 
 
 
@@ -97,7 +104,7 @@ function UserModals(props) {
     if (allUser) {
         for (let index = 0; index < allUser.length; index++) {
             let user = allUser[index];
-            usermodals.push(<UserModal key={user.id} profile={user.data.Profile} target={user.id} />);
+            usermodals.push(<UserModal key={user.id} profile={user.data.Profile} target={user.id} onClick={props.onClick} />);
         }
     }
     return usermodals;
@@ -114,28 +121,63 @@ function UserModal(props) {
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
+
+
                     <div className="modal-body">
-                        <div className="col-12"><img src={props.profile.profilePicture} /></div>
-                        <div className="col-12">Name: {props.profile.displayName}</div>
-                        <div className="col-12">Score: {props.profile.score}</div>
-                        <div className="col-12">Skill: {props.profile.skill}</div>
-                        <div className="col-12 row">
+                        <div className="row col-12">
+                            <div className="col-md-4 col-lg-2"><img src={props.profile.profilePicture} /></div>
+                            <div className="col-md-8 col-lg-10">
+                                <br />
+                                <div className="col-12">Name: {props.profile.displayName}</div>
+                                <div className="col-12">Skill: {props.profile.skill}</div>
+                            </div>
+                        </div>
+                        <br />
+                        <div className="col-12 row d-flex align-items-center">
                             <div className="col-6">Current Request: {props.profile.requestCreate}</div>
                             <div className="col-6">Status: {props.profile.statusCreate}</div>
                         </div>
 
-                        <div className="col-12 row">
+                        <div className="col-12 row d-flex align-items-center">
                             <div className="col-6">Response Request: {props.profile.requestAccepted}</div>
                             <div className="col-6">Status: {props.profile.statusRequest}</div>
                         </div>
+
+
+                        <br />
+                        <div className="col-12 row">
+                            <div className="col-6 d-flex align-items-center">
+                                <div className="col-3 col-md-5">
+                                    Score : {props.profile.score}
+                                </div>
+
+                                <div className="col-1">±</div>
+                                <div className="col-8 col-md-6">
+
+                                    <input type="number"
+                                        className="form-control"
+                                        name="score"
+                                    />
+                                </div>
+
+                            </div>
+                            <div className="col-6 d-flex align-items-center">
+                                UserStatus :
+                                {true
+                                    ? <button type="button" className="btn btn-success">normal</button>
+                                    : <button type="button" className="btn btn-danger">ban</button>
+                                }
+                            </div>
+                        </div>
+
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" className="btn btn-primary">Save changes</button>
+                        <button type="submit" className="btn btn-primary" onClick={props.onClick} >Save changes</button>
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 
 }

@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "bero-react-console-c2d3b"
+    "default": "bero-react-console-c2d3b",
+    "test1": "aaaa-7c634",
+    "bero": "bero-be-a-hero"
   }
 }

@@ -12,7 +12,7 @@ var positionFirst = {
 };
 const MyMapComponent = compose(
     withProps({
-        googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyA3fh0e8ySFm2m3oo1IyR9RVyAUOCu2Lx4&v=3.exp&libraries=geometry,drawing,places",
+        googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyCTYHNPsOIlGpD30J91XzKH-NDzqpUA71M&v=3.exp&libraries=geometry,drawing,places",
         loadingElement: <div style={{ height: `100%` }} />,
         containerElement: <div style={{ height: `400px` }} />,
         mapElement: <div style={{ height: `100%`, width: '500px' }} />,
@@ -108,18 +108,24 @@ class FirstPage extends Component {
     render() {
         return (
             <div>
-                <form onSubmit={this.writeUserData.bind(this)}>
+                {/* <form onSubmit={this.writeUserData.bind(this)}>
                     <input type="text" ref={el => this.inputName = el} />
                     <input type="text" ref={email => this.inputEmail = email} />
                     <input type="submit" />
                 </form>
                 {JSON.stringify(this.props.markerPosition)}
-                <MyMapComponent isMarkerShown mapProps={this.props} />
+                <MyMapComponent isMarkerShown mapProps={this.props} /> */}
+
+
+
+
                 {/* <MyMapComponent isMarkerShown />// Map with a Marker
                 <MyMapComponent isMarkerShown={false} />// Just only Map */}
 
-                <ul>
-                    { /* Render the list of messages */
+
+
+                {/* <ul>
+                    { 
                         this.state.messages.map(message => <li key={message.id}>{message.id} {JSON.stringify(message.text)}</li>)
                     }
                 </ul>
@@ -129,7 +135,8 @@ class FirstPage extends Component {
                         this.state.users.map(user => <li key={user.id}>{user.id}<br /> {JSON.stringify(user.data)}</li>)
                     }
                 </ul>
-                <TestAdd testsend={this.state.users} />
+                <TestAdd testsend={this.state.users} /> */}
+
 
             </div>
         );

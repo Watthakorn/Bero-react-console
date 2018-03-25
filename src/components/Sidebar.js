@@ -18,6 +18,8 @@ class Sidebar extends Component {
                 var user = result.user;
                 // console.log("dwdwd");
                 // ...
+
+                // console.log(user.providerData[0].uid);
             }).catch(function (error) {
                 // Handle Errors here.
                 var errorCode = error.code;
@@ -101,13 +103,16 @@ function AlreadyLogin(props) {
     var user = props.user;
     if (user) {
         return (
-            <div className="row">
-                <div className="col-6">
-                    <img src={user.photoURL} />
+            <div>
+                <div className="row">
+                    <div className="col-12 col-xl-6">
+                        <img src={"http://graph.facebook.com/" + user.providerData[0].uid + "/picture?type=square"} />
+                    </div>
+                    <div className="col-12 col-xl-6  d-flex align-items-center">
+                        {user.displayName}
+                    </div>
                 </div>
-                <div className="col-6">
-                    {user.displayName}
-                </div>
+                <br />
             </div>
         );
 

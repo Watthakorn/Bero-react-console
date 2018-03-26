@@ -6,12 +6,20 @@ import { withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow } from "reac
 import { connect } from "react-redux"
 
 
-var allInfo = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+// var allInfo = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 var positionFirst = {
     lat: 13.719349,
     lng: 100.781223
 };
+var allInfo = [];
+var infoRef = fire.database().ref('informations');
+infoRef.on('child_added', snap => {
+    let info = { id: snap.key, data: snap.val() }
+    // this.setState({ users: [user].concat(this.state.users) });
+    // console.log(snap.val());
+    allInfo.push(info);
+});
 
 class Information extends Component {
 
@@ -28,7 +36,19 @@ class Information extends Component {
         };
     }
 
+    componentWillMount() {
+        // var allInfo = [];
+        // var infoRef = fire.database().ref('informations');
+        // infoRef.on('child_added', snap => {
+        //     let info = { id: snap.key, data: snap.val() }
+        //     // this.setState({ users: [user].concat(this.state.users) });
+        //     // console.log(snap.val());
+        //     allInfo.push(info);
+        // });
 
+        this.props.addInformations(allInfo);
+        // console.log(this.props);
+    }
 
 
     _handleInputChange(event) {
@@ -67,7 +87,7 @@ class Information extends Component {
         databaseRef.push({
             title: state.infoName,
             type: state.infoType,
-            marker_position: {
+            mark_position: {
                 latitude: markerPosition.lat,
                 longitude: markerPosition.lng
             },
@@ -117,6 +137,11 @@ class Information extends Component {
 
 
     render() {
+
+        const props = this.props;
+        const allInfo = props.informations.informations;
+        // console.log(allInfo);
+
         return (
             <div>
                 <div className="d-flex justify-content-end">
@@ -124,7 +149,7 @@ class Information extends Component {
                 </div>
                 <div className="row">
                     <div className="col-12 col-xl-6">
-                        <InformationMap isMarkerShown />
+                        <InformationsMap isMarkerShown />
                     </div>
                     <div className="col-12 col-xl-6">
                         <div className="row">
@@ -148,12 +173,12 @@ class Information extends Component {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <InfoRows />
+                                    <InfoRows informations={allInfo} />
                                 </tbody>
                             </table>
                         </div>
 
-                        <InfoModals />
+                        <InfoModals informations={allInfo} />
 
                         <div className="modal fade" id="createInfoModal" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
                             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -278,9 +303,12 @@ class Information extends Component {
 
 function InfoRows(props) {
     var inforows = [];
+    var allInfo = props.informations;
 
     for (let index = 0; index < allInfo.length; index++) {
-        inforows.push(<InfoRow key={"inforow" + index} infoid={index} target={"#targetinfo" + index} />);
+        let info = allInfo[index];
+        // console.log(info.id)
+        inforows.push(<InfoRow key={info.id} infoNo={index + 1} info={info} target={"#" + info.id} />);
     }
     return inforows;
 
@@ -288,23 +316,22 @@ function InfoRows(props) {
 function InfoRow(props) {
     return (
         <tr>
-            <td>{props.infoid}</td>
-            <td>HospitalTestTestTest</td>
-            <td>Hospital</td>
+            <td>{props.infoNo}</td>
+            <td>{props.info.data.title}</td>
+            <td>{props.info.data.type}</td>
             <td><a href="#" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info-circle"></i> detail</a></td>
         </tr>
     );
 
 }
-function InfoMao(params) {
-
-}
 
 function InfoModals(props) {
     var infomodals = [];
+    var allInfo = props.informations;
 
     for (let index = 0; index < allInfo.length; index++) {
-        infomodals.push(<InfoModal key={"infomodal" + index} infoid={index} target={"targetinfo" + index} />);
+        let info = allInfo[index];
+        infomodals.push(<InfoModal key={info.id} infoNo={index + 1} info={info} target={info.id} />);
     }
     return infomodals;
 
@@ -315,17 +342,45 @@ function InfoModal(props) {
             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
                 <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title" id="exampleModalLongTitle">Infomation: {props.infoid}</h5>
+                        <h5 className="modal-title" id="exampleModalLongTitle">Information: {props.infoNo}</h5>
                         <button type="button" className="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div className="modal-body">
-                        <p>Infomation detail will go here.</p>
+
+                        <div className="modal-body">
+                            <div className="col-12 row">
+                                ID: {props.info.id}
+                            </div>
+                            <br />
+                            <div className="col-12 row d-flex align-items-center">
+                                <div className="col-6">Name: {props.info.data.title}</div>
+                                <div className="col-6">Type: {props.info.data.type}</div>
+                            </div>
+                            <br />
+                            <div className="col-12 row d-flex align-items-center">
+                                <div className="col-6">Contact: {props.info.data.contact}</div>
+                                <div className="col-6">Detail: {props.info.data.detail}</div>
+                            </div>
+
+                            <br />
+                            <div className="col-12 row d-flex align-items-center">
+
+                                <div className="col-6">Positions: {props.info.data.mark_position.latitude},
+                                {props.info.data.mark_position.longitude} </div>
+
+                                <div className="col-6">
+                                    <button type="button" className="btn btn-primary">Go</button>
+                                </div>
+                            </div>
+
+
+                        </div>
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" className="btn btn-primary">Save changes</button>
+                        {/* <button type="button" className="btn btn-primary">Save changes</button> */}
                     </div>
                 </div>
             </div>
@@ -390,7 +445,7 @@ const SelectPositionMap = compose(
 
 
 
-const InformationMap = compose(
+const InformationsMap = compose(
     withProps({
         googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyCTYHNPsOIlGpD30J91XzKH-NDzqpUA71M&v=3.exp&libraries=geometry,drawing,places",
         loadingElement: <div style={{ height: `100%` }} />,
@@ -441,7 +496,8 @@ const mapStateToProps = (state) => {
 
     // console.log(state)
     return {
-        markerPosition: state.positionReducer
+        markerPosition: state.positionReducer,
+        informations: state.informationsReducer
     }
 }
 const mapDispatchToProps = (dispatch) => {
@@ -451,6 +507,15 @@ const mapDispatchToProps = (dispatch) => {
                 type: "CHANGE_LOCATION",
                 payload: position
             })
+        },
+
+        addInformations: (informations) => {
+            if (informations) {
+                dispatch({
+                    type: "INFORMATIONS_FETCH",
+                    payload: informations
+                })
+            }
         }
     }
 }

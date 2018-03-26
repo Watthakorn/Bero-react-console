@@ -4,34 +4,33 @@ import '../../css/bero.css';
 import { connect } from "react-redux";
 
 
-// var usersRef = fire.database().ref('users');
-
-// var allUser = [];
-
-// usersRef.on('child_added', snap => {
-//     let user = { id: snap.key, data: snap.val() }
-//     allUser.push(user);
-//     // console.log(snap.val());
-// });
+var allUser = [];
+var usersRef = fire.database().ref('users');
+usersRef.on('child_added', snap => {
+    let user = { id: snap.key, data: snap.val() }
+    // this.setState({ users: [user].concat(this.state.users) });
+    // console.log(snap.val());
+    allUser.push(user);
+});
 
 class User extends Component {
 
     componentWillMount() {
-        var allUser = [];
-        var usersRef = fire.database().ref('users');
-        usersRef.on('child_added', snap => {
-            let user = { id: snap.key, data: snap.val() }
-            // this.setState({ users: [user].concat(this.state.users) });
-            // console.log(snap.val());
-            allUser.push(user);
-        });
+        // var allUser = [];
+        // var usersRef = fire.database().ref('users');
+        // usersRef.on('child_added', snap => {
+        //     let user = { id: snap.key, data: snap.val() }
+        //     // this.setState({ users: [user].concat(this.state.users) });
+        //     // console.log(snap.val());
+        //     allUser.push(user);
+        // });
 
         this.props.addUsers(allUser);
         // console.log(allUser);
     }
 
     _handleSave(e) {
-        console.log(e.target.type);
+        console.log(e.target.value);
         console.log("hey wake up!");
     }
 
@@ -39,7 +38,7 @@ class User extends Component {
 
         const props = this.props;
         const users = props.users.users;
-
+        // console.log(users);
         return (
             <div>
                 <div className="d-flex justify-content-end">
@@ -78,7 +77,7 @@ function UserRows(props) {
     if (allUser) {
         for (let index = 0; index < allUser.length; index++) {
             let user = allUser[index];
-            userrows.push(<UserRow key={user.id} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
+            userrows.push(<UserRow key={user.id} user={user} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
         }
 
     }
@@ -104,7 +103,7 @@ function UserModals(props) {
     if (allUser) {
         for (let index = 0; index < allUser.length; index++) {
             let user = allUser[index];
-            usermodals.push(<UserModal key={user.id} profile={user.data.Profile} target={user.id} onClick={props.onClick} />);
+            usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id} onClick={props.onClick} />);
         }
     }
     return usermodals;
@@ -173,7 +172,7 @@ function UserModal(props) {
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" className="btn btn-primary" onClick={props.onClick} >Save changes</button>
+                        <button type="submit" value={props.user.id} className="btn btn-primary" onClick={props.onClick} >Save changes</button>
                     </div>
                 </div>
             </div>

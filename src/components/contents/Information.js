@@ -31,6 +31,7 @@ class Information extends Component {
             detail: '',
             contact: '',
             progressBar: '',
+            location: '',
             disabled: false,
             showCreate: true
         };
@@ -93,6 +94,7 @@ class Information extends Component {
             },
             detail: state.detail,
             contact: state.contact,
+            location: state.location
 
         })
 
@@ -231,22 +233,30 @@ class Information extends Component {
 
 
 
+                                                    <div className="form-row">
+                                                        <div className="form-group col-sm-6">
+                                                            <label htmlFor="contact">Contact</label>
+                                                            <textarea className="form-control"
+                                                                name="contact"
+                                                                value={this.state.contact}
+                                                                onChange={(e) => this._handleInputChange(e)}
+                                                                disabled={(this.state.disabled) ? "disabled" : ""}
+                                                                required
+                                                            />
+                                                        </div>
 
-
-                                                    <div className="form-group">
-                                                        <label htmlFor="contact">Contact</label>
-                                                        <textarea className="form-control"
-                                                            name="contact"
-                                                            value={this.state.contact}
-                                                            onChange={(e) => this._handleInputChange(e)}
-                                                            disabled={(this.state.disabled) ? "disabled" : ""}
-                                                            required
-                                                        />
+                                                        {/* detail */}
+                                                        <div className="form-group col-sm-6">
+                                                            <label htmlFor="location" >Location <a style={{ color: "red" }}>*</a></label>
+                                                            <textarea className="form-control"
+                                                                name="location"
+                                                                value={this.state.location}
+                                                                onChange={(e) => this._handleInputChange(e)}
+                                                                disabled={(this.state.disabled) ? "disabled" : ""}
+                                                                required
+                                                            />
+                                                        </div>
                                                     </div>
-
-
-
-                                                    {/* detail */}
                                                     <div className="form-group">
                                                         <label htmlFor="detail">Detail</label>
                                                         <textarea className="form-control"
@@ -257,6 +267,11 @@ class Information extends Component {
                                                             required
                                                         />
                                                     </div>
+                                                    <div style={{ color: "red", fontSize: "12px" }}>*In case of position error</div>
+
+
+
+
                                                 </div>
 
 
@@ -296,7 +311,7 @@ class Information extends Component {
 
                     </div>
                 </div>
-            </div>
+            </div >
         );
     }
 }
@@ -328,6 +343,7 @@ function InfoRow(props) {
 function InfoModals(props) {
     var infomodals = [];
     var allInfo = props.informations;
+    // console.log(allInfo)
 
     for (let index = 0; index < allInfo.length; index++) {
         let info = allInfo[index];
@@ -367,11 +383,10 @@ function InfoModal(props) {
                             <br />
                             <div className="col-12 row d-flex align-items-center">
 
-                                <div className="col-6">Positions: {props.info.data.mark_position.latitude},
-                                {props.info.data.mark_position.longitude} </div>
+                                <div className="col-6">Location:  {props.info.data.location}</div>
 
                                 <div className="col-6">
-                                    <button type="button" className="btn btn-primary">Go</button>
+                                    <button type="button" className="btn btn-light">Go</button>
                                 </div>
                             </div>
 

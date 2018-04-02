@@ -13,7 +13,14 @@ reportsRef.on('child_added', snap => {
     // console.log(snap.val());
     allReport.push(report);
 });
+var allUser = [];
 var usersRef = fire.database().ref('users');
+usersRef.on('child_added', snap => {
+    let user = { id: snap.key, data: snap.val() }
+    // this.setState({ users: [user].concat(this.state.users) });
+    // console.log(snap.val());
+    allUser.push(user);
+});
 
 class Report extends Component {
 
@@ -28,7 +35,9 @@ class Report extends Component {
         //     allReport.push(report);
         // });
         // console.log(allReport);
+        this.props.addUsers(allUser);
         this.props.addReport(allReport);
+        // console.log(this.props.users.users)
 
     }
 
@@ -109,30 +118,33 @@ function ReportModal(props) {
                         </div>
                         <br />
                         <div className="col-12 row d-flex align-items-center">
-                            <div className="col-6">Title: {props.report.data.title}</div>
-                            <div className="col-6">Owner: {props.report.data.owner}</div>
+                            <div className="col-6">Title: <input className="form-control" value={props.report.data.title} disabled="disabled" /></div>
+                            <div className="col-6">Owner: <input className="form-control" value={props.report.data.owner} disabled="disabled" /></div>
                         </div>
                         {props.report.data.target &&
                             <div>
                                 <br />
                                 <div className="col-12 row d-flex align-items-center">
                                     <div className="col-6"></div>
-                                    <div className="col-6">Target: {props.report.data.target}</div>
+                                    <div className="col-6">Target: <input className="form-control" value={props.report.data.target} disabled="disabled" /></div>
                                 </div>
                             </div>}
                         <br />
                         <div className="col-12 row d-flex align-items-center">
-                            <div className="col-6">Detail: {props.report.data.detail}</div>
-                            <div className="col-6">Status: {props.report.data.status}</div>
+                            <div className="col-12">Detail: <textarea className="form-control" value={props.report.data.title} disabled="disabled" /></div>
                         </div>
+                        <br />
+                        {/* <div className="col-12 row d-flex align-items-center">
+                            <div className="col-6">Status: {props.report.data.status}</div>
+                        </div> */}
 
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button"
+                        {/* <button type="button"
                             value={props.report.id}
                             onClick={props.onClick}
-                            className="btn btn-primary">Save changes</button>
+                            className="btn btn-primary">Save changes</button> */}
                     </div>
                 </div>
             </div>
@@ -144,7 +156,8 @@ function ReportModal(props) {
 
 const mapStateToProps = (state) => {
     return {
-        reports: state.reportsReducer
+        reports: state.reportsReducer,
+        users: state.usersReducer
     }
 }
 const mapDispatchToProps = (dispatch) => {
@@ -154,6 +167,14 @@ const mapDispatchToProps = (dispatch) => {
                 dispatch({
                     type: "REPORTS_FETCH",
                     payload: reports
+                })
+            }
+        },
+        addUsers: (users) => {
+            if (users) {
+                dispatch({
+                    type: "USERS_PROFILE_FETCH",
+                    payload: users
                 })
             }
         }

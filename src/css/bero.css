@@ -8,7 +8,7 @@
 .form-group img {
     width: 100%;
     height: auto;
-    max-height: 400px;
+    /* max-height: 400px; */
     max-width: 900px;
 }
 

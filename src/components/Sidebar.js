@@ -1,15 +1,16 @@
 import React, { Component } from 'react';
 import { Link } from "react-router-dom";
-import { provider, auth } from "../fire";
+import fire, { provider, auth } from "../fire";
 import { connect } from "react-redux";
 import '../css/bero.css';
-
 
 class Sidebar extends Component {
 
     async loginFacebook() {
+        var user = [];
         if (auth().currentUser) {
             this.props.loginFace(auth().currentUser);
+
         } else {
             await auth().signInWithPopup(provider).then(function (result) {
                 // This gives you a Facebook Access Token. You can use it to access the Facebook API.
@@ -71,33 +72,41 @@ class Sidebar extends Component {
                             {/* {JSON.stringify(this.props.user.user)} */}
                         </div>
                     </div>
+                    {user
+                        ?
+                        <div>
+                            <ul className="navbar-nav flex-column">
+                                {/* <!-- ADMIN Sidebar --> */}
+                                <li className="menu-title">Admin</li>
+                                <li className="nav-item btn-light">
+                                    <Link className="nav-link" to="/report"><i className="fa fa-file-text-o"></i> Report</Link>
+                                </li>
+                                <li className="nav-item btn-light">
+                                    <Link className="nav-link" to="/information"><i className="fa fa-building-o"></i> Infomation</Link>
+                                </li>
+                                <li className="nav-item btn-light">
+                                    <Link className="nav-link" to="/user"><i className="fa fa-users"></i> User</Link>
+                                </li>
+                            </ul>
 
-                    <ul className="navbar-nav flex-column">
-                        {/* <!-- ADMIN Sidebar --> */}
-                        <li className="menu-title">Admin</li>
-                        <li className="nav-item btn-light">
-                            <Link className="nav-link" to="/report"><i className="fa fa-file-text-o"></i> Report</Link>
-                        </li>
-                        <li className="nav-item btn-light">
-                            <Link className="nav-link" to="/information"><i className="fa fa-building-o"></i> Infomation</Link>
-                        </li>
-                        <li className="nav-item btn-light">
-                            <Link className="nav-link" to="/user"><i className="fa fa-users"></i> User</Link>
-                        </li>
-                    </ul>
+                            {/* <!-- EVENT Sidebar --> */}
+                            <ul className="navbar-nav flex-column">
+                                <li className="menu-title">Event</li>
+                                <li className="nav-item btn-light">
+                                    <Link className="nav-link" to="Event"><i className="fa fa-gears"></i> Manage</Link>
+                                </li>
+                            </ul>
+                        </div>
+                        : ''
+                    }
 
-                    {/* <!-- EVENT Sidebar --> */}
-                    <ul className="navbar-nav flex-column">
-                        <li className="menu-title">Event</li>
-                        <li className="nav-item btn-light">
-                            <Link className="nav-link" to="Event"><i className="fa fa-gears"></i> Manage</Link>
-                        </li>
-                    </ul>
+
                 </div>
             </div>
         );
     }
 }
+
 
 function AlreadyLogin(props) {
     var user = props.user;
@@ -128,7 +137,7 @@ function AlreadyLogin(props) {
 function LoginFacebook(props) {
     return (
         <div className="row">
-            <button type="button" onClick={props.onClick} className="btn btn-large btn-block btn-primary ">Login</button>
+            <button type="button" onClick={props.onClick} className="btn btn-large btn-block btn-primary "><i className="fa fa-facebook-f" />| Login with Facebook</button>
         </div>
     )
 }
@@ -141,6 +150,7 @@ function LogoutFacebook(props) {
     )
 }
 
+
 const mapStateToProps = (state) => {
     return {
         user: state.userReducer
@@ -148,10 +158,10 @@ const mapStateToProps = (state) => {
 }
 const mapDispatchToProps = (dispatch) => {
     return {
-        loginFace: (users) => {
+        loginFace: (user) => {
             dispatch({
                 type: "LOGIN_USER",
-                payload: users
+                payload: user
             })
         },
         logoutFace: (users) => {

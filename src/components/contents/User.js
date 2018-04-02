@@ -4,33 +4,37 @@ import '../../css/bero.css';
 import { connect } from "react-redux";
 
 
-var allUser = [];
-var usersRef = fire.database().ref('users');
-usersRef.on('child_added', snap => {
-    let user = { id: snap.key, data: snap.val() }
-    // this.setState({ users: [user].concat(this.state.users) });
-    // console.log(snap.val());
-    allUser.push(user);
-});
+// var allUser = [];
+// var usersRef = fire.database().ref('users');
+// usersRef.on('child_added', snap => {
+//     let user = { id: snap.key, data: snap.val() }
+//     // this.setState({ users: [user].concat(this.state.users) });
+//     // console.log(snap.val());
+//     allUser.push(user);
+// });
 
 class User extends Component {
 
     componentWillMount() {
-        // var allUser = [];
-        // var usersRef = fire.database().ref('users');
-        // usersRef.on('child_added', snap => {
-        //     let user = { id: snap.key, data: snap.val() }
-        //     // this.setState({ users: [user].concat(this.state.users) });
-        //     // console.log(snap.val());
-        //     allUser.push(user);
-        // });
+        var allUser = [];
+        var usersRef = fire.database().ref('users');
+        usersRef.on('child_added', snap => {
+            let user = { id: snap.key, data: snap.val() }
+            // this.setState({ users: [user].concat(this.state.users) });
+            // console.log(snap.val());
+            allUser.push(user);
+        });
 
         this.props.addUsers(allUser);
         // console.log(allUser);
     }
 
     _handleSave(e) {
+        var userId = e.target.value;
         console.log(e.target.value);
+        fire.database().ref('users/' + userId + '/Profile').update({
+            score: 100,
+        });
         console.log("hey wake up!");
     }
 
@@ -146,26 +150,34 @@ function UserModal(props) {
                         <br />
                         <div className="col-12 row">
                             <div className="col-6 d-flex align-items-center">
-                                <div className="col-3 col-md-5">
-                                    Score : {props.profile.score}
+                                <div>
+                                    CurrentScore : {props.profile.score}
                                 </div>
 
-                                <div className="col-1">±</div>
+                                {/* <div className="col-1">±</div>
                                 <div className="col-8 col-md-6">
 
                                     <input type="number"
                                         className="form-control"
                                         name="score"
                                     />
-                                </div>
+                                </div> */}
 
                             </div>
                             <div className="col-6 d-flex align-items-center">
-                                UserStatus :
+
+                                ChangeScore
+                                <input type="number"
+                                    className="form-control"
+                                    name="score"
+                                    value={props.profile.score}
+                                    disabled="disabled"
+                                />
+                                {/* UserStatus :
                                 {true
                                     ? <button type="button" className="btn btn-success">normal</button>
                                     : <button type="button" className="btn btn-danger">ban</button>
-                                }
+                                } */}
                             </div>
                         </div>
 

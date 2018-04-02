@@ -4,15 +4,48 @@ import '../../css/bero.css';
 import { compose, withProps, lifecycle } from "recompose"
 import { withScriptjs, withGoogleMap, GoogleMap, Marker } from "react-google-maps"
 import { connect } from "react-redux"
+import GeoFire from "geofire"
 
 
 var positionFirst = {
     lat: 13.719349,
     lng: 100.781223
 };
-var allEvent = [0, 1, 2, 3, 4];
 var today = new Date();
 var todayDate = today.getFullYear() + '-' + ((today.getMonth() + 1) < 10 ? '0' + (today.getMonth() + 1) : today.getMonth() + 1) + '-' + today.getDate();
+
+var allEvent = [];
+var allRequest = [];
+var requestsRef = fire.database().ref('requests');
+requestsRef.on('child_added', snap => {
+    let request = { id: snap.key, data: snap.val() }
+    // this.setState({ users: [user].concat(this.state.users) });
+    // console.log(snap.val());
+    if (request.data.type === 'Event') {
+        allEvent.push(request);
+    } else {
+        allRequest.push(request)
+    }
+});
+
+var allCodeKey = [];
+var allCode = [];
+var codesRef = fire.database().ref('codes');
+codesRef.on('child_added', snap => {
+    let code = { id: snap.key, data: snap.val() }
+    // this.setState({ users: [user].concat(this.state.users) });
+    // console.log(snap.val());
+    if (allCodeKey.includes(code.data.event)) {
+        allCode[allCodeKey.indexOf(code.data.event)].push([code.id, code.data.status]);
+    } else {
+        allCodeKey.push(code.data.event);
+        allCode.push([[code.id, code.data.status]]);
+    }
+});
+// console.log(allCodeKey);
+// console.log(allCode);
+
+
 
 class Event extends Component {
     // constructor(props) {
@@ -39,8 +72,18 @@ class Event extends Component {
             showModal: true,
             progressBar: '',
             disabled: false,
-            showCreate: true
+            showCreate: true,
+            page: 1,
+            pageEvent: 1
         };
+    }
+
+    componentWillMount() {
+
+        this.props.addEvent(allEvent);
+        this.props.addRequest(allRequest);
+        // console.log(this.props.events.events);
+
     }
 
 
@@ -75,7 +118,11 @@ class Event extends Component {
         var fileName = state.file.name;
         var imageRef = eventRef.child(fileName);
         var markerPosition = props.markerPosition;
-        var databaseRef = fire.database().ref('reqevent');
+        var databaseRef = fire.database().ref('requests');
+        var codeRef = fire.database().ref('codes');
+        var newEventKey = databaseRef.push().key;
+        var geoFire = new GeoFire(fire.database().ref('geofire'));
+        // console.log(newEventKey)
 
         imageRef.getDownloadURL().then(onResolve, onReject);
 
@@ -125,7 +172,7 @@ class Event extends Component {
 
 
                 //database push HERE
-                databaseRef.push({
+                databaseRef.child(newEventKey).set({
                     detail: state.detail,
                     facebookUid: '0000000000',
                     hero: state.paticipant,
@@ -150,6 +197,15 @@ class Event extends Component {
 
 
                 })
+
+                for (let index = 0; index < state.paticipant; index++) {
+                    codeRef.push({
+                        event: newEventKey,
+                        status: 'not_activate',
+                    })
+                }
+
+                geoFire.set(newEventKey, [markerPosition.lat, markerPosition.lng])
 
 
                 thisState.setState({
@@ -225,6 +281,30 @@ class Event extends Component {
 
     // }
 
+    _handleChangePage(e) {
+        if (this.state.page == 1) {
+            this.setState({
+                page: 2,
+            })
+        } else {
+            this.setState({
+                page: 1,
+            })
+        }
+    }
+
+    _handleChangePageEvent(e) {
+        if (this.state.pageEvent == 1) {
+            this.setState({
+                pageEvent: 2,
+            })
+        } else {
+            this.setState({
+                pageEvent: 1,
+            })
+        }
+    }
+
     render() {
         let { imagePreviewUrl } = this.state;
         return (
@@ -239,17 +319,24 @@ class Event extends Component {
                 {/* <input type="text" value={this.state.value} onChange={this.handleChange} /> */}
                 {/* {this.state.value} */}
                 {/* slide */}
-                <Slide testvalue="Testtteetetetet" />
+                {/* <Slide testvalue="Testtteetetetet" /> */}
 
 
                 {/* card */}
 
+                {/* {JSON.stringify(allCode[0])} */}
+                <button onClick={(e) => this._handleChangePageEvent(e)}>{this.state.pageEvent == 1 ? 'View Request' : 'View Event'}</button>
                 <div className="card-columns event-card">
-                    <EventCards />
+
+                    {this.state.pageEvent == 1
+                        ? <EventCards events={allEvent} />
+
+                        : <RequestCards requests={allRequest} />
+                    }
                 </div>
 
-                <EventModals />
 
+                <EventModals events={allEvent} page={this.state.page} onPageClick={(e) => this._handleChangePage(e)} />
 
                 {/* <!-- Create Event modal or move modal to here --> */}
                 {/* <CreateEventModal imageevent={this.state.image} /> */}
@@ -384,8 +471,17 @@ class Event extends Component {
                                 {/* footer button */}
                                 {this.state.showCreate ?
                                     <div className="modal-footer">
-                                        <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                                        <button type="submit" className="btn btn-primary"> Create</button>
+                                        <button type="button"
+                                            className="btn btn-secondary"
+                                            disabled={(this.state.disabled) ? "disabled" : ""}
+                                            data-dismiss="modal">
+                                            Close
+                                        </button>
+                                        <button type="submit"
+                                            className="btn btn-primary"
+                                            disabled={(this.state.disabled) ? "disabled" : ""}>
+                                            Create
+                                        </button>
                                     </div>
                                     :
                                     <div className="modal-footer">
@@ -464,9 +560,12 @@ function Slide(props) {
 function EventCards(props) {
 
     var eventcards = [];
+    var allEvent = props.events;
+    // console.log(allEvent)
 
     for (let index = 0; index < allEvent.length; index++) {
-        eventcards.push(<EventCard key={"eventcard" + index} eventid={index} target={"#targetevent" + index} />);
+        let event = allEvent[index];
+        eventcards.push(<EventCard key={event.id} event={event} eventNo={index + 1} target={"#" + event.id} />);
     }
     return eventcards;
 }
@@ -474,11 +573,39 @@ function EventCards(props) {
 function EventCard(props) {
     return (
         <div className="card text-right">
-            <img className="card-img-top" src="no-img.png" alt="Card image" />
+            <img className="card-img-top" src={props.event.data.imageUrl} alt="Card image" />
             <div className="card-body">
-                <h5 className="card-title">Event: {props.eventid}</h5>
-                <p className="card-text">detail of event here.</p>
+                <h5 className="card-title">Event: {props.eventNo}</h5>
+                <p className="card-text">{props.event.data.topic}</p>
                 <a href="#" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-gear"></i> manage</a>
+            </div>
+        </div>
+    );
+
+}
+
+
+function RequestCards(props) {
+
+    var eventcards = [];
+    var allRequest = props.requests;
+    // console.log(allEvent)
+
+    for (let index = 0; index < allRequest.length; index++) {
+        let request = allRequest[index];
+        eventcards.push(<RequestCard key={request.id} request={request} requestNo={index + 1} target={"#" + request.id} />);
+    }
+    return eventcards;
+}
+
+function RequestCard(props) {
+    return (
+        <div className="card text-right">
+            <img className="card-img-top" src={props.request.data.imageUrl} alt="Card image" />
+            <div className="card-body">
+                <h5 className="card-title">Request: {props.requestNo}</h5>
+                <p className="card-text">{props.request.data.topic}</p>
+                <a href="#" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info"></i> detail</a>
             </div>
         </div>
     );
@@ -488,35 +615,129 @@ function EventCard(props) {
 
 
 
-
-
-
-
 function EventModals(props) {
     var eventmodals = [];
 
+    var allEvent = props.events;
+    // console.log(allEvent)
+    // console.log(props.events)
+
     for (let index = 0; index < allEvent.length; index++) {
-        eventmodals.push(<EventModal key={"eventmodal" + index} eventid={index} target={"targetevent" + index} />);
+        let event = allEvent[index];
+        eventmodals.push(<EventModal key={event.id} event={event} page={props.page} eventNo={index + 1} target={event.id} onClick={props.onPageClick} />);
     }
     return eventmodals;
 }
 function EventModal(props) {
+    var codeView = [];
+    var codes = allCode[allCodeKey.indexOf(props.event.id)];
+    if (codes) {
+        for (let index = 0; index < codes.length; index++) {
+            let code = codes[index];
+            codeView.push(<div key={code[0]}>{code[0]} : {code[1]}</div>);
+        }
+    }
+    // var page = 1;
     return (
         <div className="modal fade" id={props.target} role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
                 <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title" id="exampleModalLongTitle">Event: {props.eventid}</h5>
+                        <h5 className="modal-title" id="exampleModalLongTitle">Event: {props.eventNo}</h5>
                         <button type="button" className="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
+
+
                     <div className="modal-body">
-                        <p>form with event detail will go here.</p>
+                        <button onClick={props.onClick}>{props.page == 1 ? 'View Code' : 'View Detail'}</button>
+                        <br />
+                        {props.page == 1
+                            ? <div>
+                                <div className="form-row">
+                                    <div className="form-group col-12">
+                                        <img id="img-upload"
+                                            src={props.event.data.imageUrl}
+                                            className="mx-auto d-block"
+                                            alt="Image"
+                                        // style={{ maxHeight: '300px' }}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="form-row">
+                                    {/* <!-- Form Input --> */}
+                                    <div className="form-group col-lg-6">
+                                        {/* eventName & paticipant */}
+                                        <div className="form-row">
+                                            <div className="form-group col-sm-8">
+                                                <label htmlFor="eventName">Event Name</label>
+                                                <input type="text"
+                                                    className="form-control"
+                                                    name="eventName"
+                                                    value={props.event.data.topic}
+                                                    disabled="disabled"
+                                                />
+                                            </div>
+                                            <div className="form-group col-sm-4">
+                                                <label htmlFor="participant">Participant</label>
+                                                <input type="number"
+                                                    className="form-control"
+                                                    name="paticipant"
+                                                    value={props.event.data.hero}
+                                                    disabled="disabled"
+                                                />
+                                            </div>
+                                        </div>
+
+
+                                        {/* <!-- if datepicker not work will use datepicker.js instead --> */}
+
+
+                                        {/* startDate & endDate */}
+                                        <div className="form-row">
+                                            <div className="form-group col-sm-12">
+                                                <label htmlFor="startDate">Start-End</label>
+                                                <input className="form-control"
+                                                    type="text"
+                                                    name="startDate"
+                                                    value={props.event.data.timeEvent}
+                                                    disabled="disabled"
+                                                />
+                                            </div>
+                                        </div>
+
+
+                                        {/* detail */}
+                                        <div className="form-group">
+                                            <label htmlFor="detail">Detail</label>
+                                            <textarea className="form-control"
+                                                name="detail"
+                                                value={props.event.data.detail}
+                                                style={{ height: '150px' }}
+                                                disabled="disabled"
+                                            />
+                                        </div>
+                                    </div>
+
+
+                                    {/* <!-- Form map --> */}
+                                    <div className="form-group col-lg-6">
+                                        <label htmlFor="mapEvent">Position</label>
+                                        <MyMapComponent2 />
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            : <div>{codeView}</div>
+                        }
                     </div>
+
+
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" className="btn btn-primary">Save changes</button>
+                        {/* <button type="button" className="btn btn-primary">Save changes</button> */}
                     </div>
                 </div>
             </div>
@@ -535,6 +756,56 @@ function EventModal(props) {
 
 
 
+const MyMapComponent2 = compose(
+    withProps({
+        googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyCTYHNPsOIlGpD30J91XzKH-NDzqpUA71M&v=3.exp&libraries=geometry,drawing,places",
+        loadingElement: <div style={{ height: `100%` }} />,
+        containerElement: <div style={{ height: `300px` }} />,
+        mapElement: <div style={{ height: `100%`, width: '100%' }} />,
+    }),
+    lifecycle({
+        componentWillMount() {
+            const refs = {}
+
+            this.setState({
+                position: null,
+                onMarkerMounted: ref => {
+                    refs.marker = ref;
+                },
+
+                onPositionChanged: () => {
+                    const position = refs.marker.getPosition();
+                    // console.log(position.toString());
+                    positionFirst = {
+                        lat: position.lat(),
+                        lng: position.lng()
+                    }
+
+                    this.props.mapProps.changePosition(positionFirst);
+
+
+                    // console.log(this.props.mapProps.markerPosition);
+                    // console.log(positionFirst);
+                }
+            })
+
+        },
+    }),
+    withScriptjs,
+    withGoogleMap
+)((props) =>
+    <GoogleMap
+        defaultZoom={8}
+        defaultCenter={positionFirst}
+    >
+        {props.isMarkerShown &&
+            <Marker position={positionFirst}
+            // draggable={true}
+            // ref={props.onMarkerMounted}
+            // onDragEnd={props.onPositionChanged}
+            />}
+    </GoogleMap>
+)
 
 
 
@@ -609,7 +880,10 @@ const mapStateToProps = (state) => {
 
     // console.log(state)
     return {
-        markerPosition: state.positionReducer
+        markerPosition: state.positionReducer,
+        events: state.eventsReducer,
+        requests: state.requestsReducer,
+        user: state.userReducer
     }
 }
 const mapDispatchToProps = (dispatch) => {
@@ -618,6 +892,18 @@ const mapDispatchToProps = (dispatch) => {
             dispatch({
                 type: "CHANGE_LOCATION",
                 payload: position
+            })
+        },
+        addEvent: (events) => {
+            dispatch({
+                type: "EVENTS_FETCH",
+                payload: events
+            })
+        },
+        addRequest: (requests) => {
+            dispatch({
+                type: "REQUESTS_FETCH",
+                payload: requests
             })
         }
     }

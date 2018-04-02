@@ -5,6 +5,8 @@ import usersReducer from "./usersReducer"
 import userReducer from "./userReducer"
 import informationsReducer from "./informationsReducer"
 import reportsReducer from "./reportsReducer"
+import eventsReducer from "./eventsReducer"
+import requestsReducer from "./requestsReducer"
 
 export default combineReducers({
     positionReducer,
@@ -12,5 +14,7 @@ export default combineReducers({
     usersReducer,
     userReducer,
     informationsReducer,
-    reportsReducer
+    reportsReducer,
+    eventsReducer,
+    requestsReducer
 })

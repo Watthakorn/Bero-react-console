@@ -5,26 +5,42 @@ import { connect } from "react-redux";
 
 // var allReport = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
-var allReport = [];
-var reportsRef = fire.database().ref('reports');
-reportsRef.on('child_added', snap => {
-    let report = { id: snap.key, data: snap.val() }
-    // this.setState({ users: [user].concat(this.state.users) });
-    // console.log(snap.val());
-    allReport.push(report);
-});
-var allUser = [];
-var usersRef = fire.database().ref('users');
-usersRef.on('child_added', snap => {
-    let user = { id: snap.key, data: snap.val() }
-    // this.setState({ users: [user].concat(this.state.users) });
-    // console.log(snap.val());
-    allUser.push(user);
-});
+// var allReport = [];
+// var reportsRef = fire.database().ref('reports');
+// reportsRef.on('child_added', snap => {
+//     let report = { id: snap.key, data: snap.val() }
+//     // this.setState({ users: [user].concat(this.state.users) });
+//     // console.log(snap.val());
+//     allReport.push(report);
+// });
+// var allUser = [];
+// var usersRef = fire.database().ref('users');
+// usersRef.on('child_added', snap => {
+//     let user = { id: snap.key, data: snap.val() }
+//     // this.setState({ users: [user].concat(this.state.users) });
+//     // console.log(snap.val());
+//     allUser.push(user);
+// });
 
 class Report extends Component {
 
     componentWillMount() {
+        var allReport = [];
+        var reportsRef = fire.database().ref('reports');
+        reportsRef.on('child_added', snap => {
+            let report = { id: snap.key, data: snap.val() }
+            // this.setState({ users: [user].concat(this.state.users) });
+            // console.log(snap.val());
+            allReport.push(report);
+        });
+        var allUser = [];
+        var usersRef = fire.database().ref('users');
+        usersRef.on('child_added', snap => {
+            let user = { id: snap.key, data: snap.val() }
+            // this.setState({ users: [user].concat(this.state.users) });
+            // console.log(snap.val());
+            allUser.push(user);
+        });
 
         // var allReport = [];
         // var reportsRef = fire.database().ref('reports');
@@ -43,8 +59,13 @@ class Report extends Component {
 
 
     _handleSave(e) {
-        console.log(e.target.value);
+        e.preventDefault();
+        console.log(e.target.id);
+        fire.database().ref('reports/' + e.target.id).update({
+            status: "done",
+        });
         console.log("hey wake up!");
+        e.target.submitBtn.disabled = "disabled";
     }
 
     render() {
@@ -61,7 +82,7 @@ class Report extends Component {
                 <div className="card-columns">
                     <ReportCards allReport={reports} />
                 </div>
-                <ReportModals allReport={reports} onClick={(e) => this._handleSave(e)} />
+                <ReportModals allReport={reports} onSubmit={(e) => this._handleSave(e)} />
             </div>
         );
     }
@@ -70,6 +91,7 @@ class Report extends Component {
 function ReportCards(props) {
     var reportcards = [];
     var allReport = props.allReport;
+    allReport.sort(function (a, b) { return (b.data.status > a.data.status) ? 1 : ((a.data.status > b.data.status) ? -1 : 0); });
 
     for (let index = 0; index < allReport.length; index++) {
         let report = allReport[index];
@@ -81,10 +103,16 @@ function ReportCards(props) {
 function ReportCard(props) {
     return (
         <div className="card text-right">
-            <div className="card-header">{props.report.data.title}</div>
+            <div className={props.report.data.status === "done" ? "card-header bg-success text-white" : "card-header bg-warning"}>
+                <i className={props.report.data.status === "done" ? "fa fa-envelope-open" : "fa fa-envelope-o"} /> {props.report.data.title}
+            </div>
             <div className="card-body">
                 <p className="card-text">{props.report.data.detail}</p>
-                <a href="#" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info-circle" /> detail</a>
+
+                {props.report.data.status === "done" ?
+                    <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
+                    : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>
+                }
             </div>
         </div>
     );
@@ -96,7 +124,7 @@ function ReportModals(props) {
     var allReport = props.allReport;
     for (let index = 0; index < allReport.length; index++) {
         let report = allReport[index];
-        reportmodals.push(<ReportModal key={report.id} report={report} reportNo={index + 1} target={report.id} onClick={props.onClick} />);
+        reportmodals.push(<ReportModal key={report.id} report={report} reportNo={index + 1} target={report.id} onClick={props.onClick} onSubmit={props.onSubmit} />);
     }
     return reportmodals;
 
@@ -112,40 +140,48 @@ function ReportModal(props) {
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <div className="modal-body">
-                        <div className="col-12 row">
+                    <form id={props.report.id} onSubmit={props.onSubmit}>
+                        <div className="modal-body">
+                            {/* <div className="col-12 row">
                             ID: {props.report.id}
                         </div>
-                        <br />
-                        <div className="col-12 row d-flex align-items-center">
-                            <div className="col-6">Title: <input className="form-control" value={props.report.data.title} disabled="disabled" /></div>
-                            <div className="col-6">Owner: <input className="form-control" value={props.report.data.owner} disabled="disabled" /></div>
-                        </div>
-                        {props.report.data.target &&
-                            <div>
-                                <br />
-                                <div className="col-12 row d-flex align-items-center">
-                                    <div className="col-6"></div>
-                                    <div className="col-6">Target: <input className="form-control" value={props.report.data.target} disabled="disabled" /></div>
-                                </div>
-                            </div>}
-                        <br />
-                        <div className="col-12 row d-flex align-items-center">
-                            <div className="col-12">Detail: <textarea className="form-control" value={props.report.data.title} disabled="disabled" /></div>
-                        </div>
-                        <br />
-                        {/* <div className="col-12 row d-flex align-items-center">
+                        <br /> */}
+                            <div className="col-12 row d-flex align-items-center">
+                                <div className="col-6">Title: <input className="form-control" value={props.report.data.title} disabled="disabled" /></div>
+                                <div className="col-6">Owner: <input className="form-control" value={props.report.data.owner} disabled="disabled" /></div>
+                            </div>
+                            {props.report.data.target &&
+                                <div>
+                                    <br />
+                                    <div className="col-12 row d-flex align-items-center">
+                                        <div className="col-6"></div>
+                                        <div className="col-6">Target: <input className="form-control" value={props.report.data.target} disabled="disabled" /></div>
+                                    </div>
+                                </div>}
+                            <br />
+                            <div className="col-12 row d-flex align-items-center">
+                                <div className="col-12">Detail: <textarea className="form-control" value={props.report.data.title} disabled="disabled" /></div>
+                            </div>
+                            <br />
+                            {/* <div className="col-12 row d-flex align-items-center">
                             <div className="col-6">Status: {props.report.data.status}</div>
                         </div> */}
 
-                    </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                        {/* <button type="button"
-                            value={props.report.id}
-                            onClick={props.onClick}
-                            className="btn btn-primary">Save changes</button> */}
-                    </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
+                            {props.report.data.status === "inprogress" ?
+                                <button type="submit"
+                                    value={props.report.id}
+                                    // onClick={props.onClick}
+                                    name="submitBtn"
+                                    className="btn btn-primary"
+                                    disabled={props.report.data.status === "inprogress" ? "" : "disabled"}>
+                                    Done</button>
+                                : ''}
+
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

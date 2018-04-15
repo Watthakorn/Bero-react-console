@@ -93,7 +93,7 @@ class Sidebar extends Component {
                             <ul className="navbar-nav flex-column">
                                 <li className="menu-title">Event</li>
                                 <li className="nav-item btn-light">
-                                    <Link className="nav-link" to="Event"><i className="fa fa-gears"></i> Manage</Link>
+                                    <Link className="nav-link" to="/event"><i className="fa fa-gears"></i> Manage</Link>
                                 </li>
                             </ul>
                         </div>

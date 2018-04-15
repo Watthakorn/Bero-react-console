@@ -16,6 +16,14 @@ import { connect } from "react-redux";
 class User extends Component {
 
     componentWillMount() {
+        var allReport = [];
+        var reportsRef = fire.database().ref('reports');
+        reportsRef.on('child_added', snap => {
+            let report = { id: snap.key, data: snap.val() }
+            // this.setState({ users: [user].concat(this.state.users) });
+            // console.log(snap.val());
+            allReport.push(report);
+        });
         var allUser = [];
         var usersRef = fire.database().ref('users');
         usersRef.on('child_added', snap => {
@@ -26,17 +34,23 @@ class User extends Component {
         });
 
         this.props.addUsers(allUser);
+        this.props.addReport(allReport);
         // console.log(allUser);
     }
 
-    _handleSave(e) {
-        var userId = e.target.value;
-        console.log(e.target.value);
-        fire.database().ref('users/' + userId + '/Profile').update({
-            score: 100,
+    _handleSaveChange(e) {
+        e.preventDefault();
+        // var userId = e.target.value;
+        console.log(e.target.id);
+        fire.database().ref('users/' + e.target.id + '/Profile').update({
+            score: e.target.score.value,
         });
-        console.log("hey wake up!");
+        // this.props.updateUser(e.target.id, e.target.score.value);
+        // console.log("hey wake up!");
+        e.target.score.disabled = "disabled";
+        e.target.submitBtn.disabled = "disabled";
     }
+
 
     render() {
 
@@ -66,7 +80,7 @@ class User extends Component {
                     </table>
                 </div>
 
-                <UserModals allUser={users} onClick={(e) => this._handleSave(e)} />
+                <UserModals allUser={users} onSubmit={(e) => this._handleSaveChange(e)} />
 
 
 
@@ -95,7 +109,7 @@ function UserRow(props) {
             <td><img src={props.profile.profilePicture} /></td>
             <td>{props.profile.displayName}</td>
             <td>{props.profile.score}</td>
-            <td><a href="#" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info-circle"></i> detail</a></td>
+            <td><a href="" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info-circle"></i> detail</a></td>
         </tr>
     );
 
@@ -107,7 +121,7 @@ function UserModals(props) {
     if (allUser) {
         for (let index = 0; index < allUser.length; index++) {
             let user = allUser[index];
-            usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id} onClick={props.onClick} />);
+            usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id} onSubmit={props.onSubmit} />);
         }
     }
     return usermodals;
@@ -125,36 +139,36 @@ function UserModal(props) {
                         </button>
                     </div>
 
-
-                    <div className="modal-body">
-                        <div className="row col-12">
-                            <div className="col-md-4 col-lg-2"><img src={props.profile.profilePicture} /></div>
-                            <div className="col-md-8 col-lg-10">
-                                <br />
-                                <div className="col-12">Name: {props.profile.displayName}</div>
-                                <div className="col-12">Skill: {props.profile.skill}</div>
-                            </div>
-                        </div>
-                        <br />
-                        <div className="col-12 row d-flex align-items-center">
-                            <div className="col-6">Current Request: {props.profile.requestCreate}</div>
-                            <div className="col-6">Status: {props.profile.statusCreate}</div>
-                        </div>
-
-                        <div className="col-12 row d-flex align-items-center">
-                            <div className="col-6">Response Request: {props.profile.requestAccepted}</div>
-                            <div className="col-6">Status: {props.profile.statusRequest}</div>
-                        </div>
-
-
-                        <br />
-                        <div className="col-12 row">
-                            <div className="col-6 d-flex align-items-center">
-                                <div>
-                                    CurrentScore : {props.profile.score}
+                    <form id={props.user.id} onSubmit={props.onSubmit}>
+                        <div className="modal-body">
+                            <div className="row col-12">
+                                <div className="col-md-4 col-lg-2"><img src={props.profile.profilePicture} /></div>
+                                <div className="col-md-8 col-lg-10">
+                                    <br />
+                                    <div className="col-12">Name: {props.profile.displayName}</div>
+                                    <div className="col-12">Skill: {props.profile.skill}</div>
                                 </div>
+                            </div>
+                            <br />
+                            <div className="col-12 row d-flex align-items-center">
+                                <div className="col-6">Current Request: {props.profile.requestCreate}</div>
+                                <div className="col-6">Status: {props.profile.statusCreate}</div>
+                            </div>
 
-                                {/* <div className="col-1">±</div>
+                            <div className="col-12 row d-flex align-items-center">
+                                <div className="col-6">Response Request: {props.profile.requestAccepted}</div>
+                                <div className="col-6">Status: {props.profile.statusRequest}</div>
+                            </div>
+
+
+                            <br />
+                            <div className="col-12 row">
+                                <div className="col-6 d-flex align-items-center">
+                                    <div>
+                                        CurrentScore : {props.profile.score}
+                                    </div>
+
+                                    {/* <div className="col-1">±</div>
                                 <div className="col-8 col-md-6">
 
                                     <input type="number"
@@ -163,29 +177,30 @@ function UserModal(props) {
                                     />
                                 </div> */}
 
-                            </div>
-                            <div className="col-6 d-flex align-items-center">
+                                </div>
+                                <div className="col-6 d-flex align-items-center">
 
-                                ChangeScore
+                                    ChangeScore_
                                 <input type="number"
-                                    className="form-control"
-                                    name="score"
-                                    value={props.profile.score}
-                                    disabled="disabled"
-                                />
-                                {/* UserStatus :
+                                        className="form-control"
+                                        name="score"
+                                        defaultValue={props.profile.score}
+                                        disabled=""
+                                    />
+                                    {/* UserStatus :
                                 {true
                                     ? <button type="button" className="btn btn-success">normal</button>
                                     : <button type="button" className="btn btn-danger">ban</button>
                                 } */}
+                                </div>
                             </div>
-                        </div>
 
-                    </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" value={props.user.id} className="btn btn-primary" onClick={props.onClick} >Save changes</button>
-                    </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" name="submitBtn" value={props.user.id} className="btn btn-primary" disabled="">Save changes</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div >
@@ -196,6 +211,8 @@ function UserModal(props) {
 
 const mapStateToProps = (state) => {
     return {
+        users: state.usersReducer,
+        reports: state.reportsReducer,
         users: state.usersReducer
     }
 }
@@ -206,6 +223,14 @@ const mapDispatchToProps = (dispatch) => {
                 dispatch({
                     type: "USERS_PROFILE_FETCH",
                     payload: users
+                })
+            }
+        },
+        addReport: (reports) => {
+            if (reports) {
+                dispatch({
+                    type: "REPORTS_FETCH",
+                    payload: reports
                 })
             }
         }

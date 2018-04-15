@@ -79,9 +79,28 @@ class Event extends Component {
     }
 
     componentWillMount() {
+        var allReport = [];
+        var reportsRef = fire.database().ref('reports');
+        reportsRef.on('child_added', snap => {
+            let report = { id: snap.key, data: snap.val() }
+            // this.setState({ users: [user].concat(this.state.users) });
+            // console.log(snap.val());
+            allReport.push(report);
+        });
+        var allUser = [];
+        var usersRef = fire.database().ref('users');
+        usersRef.on('child_added', snap => {
+            let user = { id: snap.key, data: snap.val() }
+            // this.setState({ users: [user].concat(this.state.users) });
+            // console.log(snap.val());
+            allUser.push(user);
+        });
+        this.props.addUsers(allUser);
+        this.props.addReport(allReport);
 
         this.props.addEvent(allEvent);
         this.props.addRequest(allRequest);
+
         // console.log(this.props.events.events);
 
     }
@@ -174,7 +193,7 @@ class Event extends Component {
                 //database push HERE
                 databaseRef.child(newEventKey).set({
                     detail: state.detail,
-                    facebookUid: '0000000000',
+                    facebookUid: '1540761695946142',
                     hero: state.paticipant,
                     heroAccepted: 0,
                     imageUrl: downloadURL,
@@ -282,7 +301,7 @@ class Event extends Component {
     // }
 
     _handleChangePage(e) {
-        if (this.state.page == 1) {
+        if (this.state.page === 1) {
             this.setState({
                 page: 2,
             })
@@ -294,7 +313,7 @@ class Event extends Component {
     }
 
     _handleChangePageEvent(e) {
-        if (this.state.pageEvent == 1) {
+        if (this.state.pageEvent === 1) {
             this.setState({
                 pageEvent: 2,
             })
@@ -305,15 +324,24 @@ class Event extends Component {
         }
     }
 
+    _handleSaveChange(e) {
+        e.preventDefault();
+        // var userId = e.target.value;
+        console.log(e.target);
+        // fire.database().ref('users/' + userId + '/Profile').update({
+        //     score: 100,
+        // });
+        console.log("hey wake up!");
+    }
+
     render() {
         let { imagePreviewUrl } = this.state;
         return (
             <div>
                 <div className="d-flex justify-content-end">
                     <div className="pt-2">
-                        <button className="btn btn-info rounded-circle text-center font-weight-bold" data-toggle="modal" data-target="#createEventModal">+</button>
+                        <button className="btn btn-info rounded-circle text-center font-weight-bold" style={{ "marginRight": "10px" }} data-toggle="modal" data-target="#createEventModal">+</button>
                     </div>
-                    . .
                     <h1 className="page-title"><i className="fa fa-gears"></i> Manage</h1>
                 </div>
                 {/* <input type="text" value={this.state.value} onChange={this.handleChange} /> */}
@@ -325,10 +353,10 @@ class Event extends Component {
                 {/* card */}
 
                 {/* {JSON.stringify(allCode[0])} */}
-                <button onClick={(e) => this._handleChangePageEvent(e)}>{this.state.pageEvent == 1 ? 'View Request' : 'View Event'}</button>
+                <button onClick={(e) => this._handleChangePageEvent(e)}>{this.state.pageEvent === 1 ? 'View Request' : 'View Event'}</button>
                 <div className="card-columns event-card">
 
-                    {this.state.pageEvent == 1
+                    {this.state.pageEvent === 1
                         ? <EventCards events={allEvent} />
 
                         : <RequestCards requests={allRequest} />
@@ -336,7 +364,6 @@ class Event extends Component {
                 </div>
 
 
-                <EventModals events={allEvent} page={this.state.page} onPageClick={(e) => this._handleChangePage(e)} />
 
                 {/* <!-- Create Event modal or move modal to here --> */}
                 {/* <CreateEventModal imageevent={this.state.image} /> */}
@@ -354,7 +381,7 @@ class Event extends Component {
 
 
                             {/* <!-- Form --> */}
-                            <form onSubmit={(e) => this._handleSubmit(e)} >
+                            <form onSubmit={(e) => this._handleSubmit(e)} id="createEvent" >
                                 <div className="modal-body">
                                     <div className="form-row">
                                         <div className="form-group col-12">
@@ -479,6 +506,7 @@ class Event extends Component {
                                         </button>
                                         <button type="submit"
                                             className="btn btn-primary"
+                                            value="createEvent"
                                             disabled={(this.state.disabled) ? "disabled" : ""}>
                                             Create
                                         </button>
@@ -490,71 +518,16 @@ class Event extends Component {
                                     </div>}
                             </form>
                             {/* <!-- End Form Event --> */}
-
-
-
-
                         </div>
                     </div>
                 </div>
+
+                <EventModals events={allEvent} page={this.state.page} onSubmit={(e) => this._handleSaveChange(e)} onPageClick={(e) => this._handleChangePage(e)} />
+                <RequestModals requests={allRequest} page={this.state.page} onPageClick={(e) => this._handleChangePage(e)} />
             </div>
         );
     }
 }
-
-
-
-
-
-
-function Slide(props) {
-    return (
-        <div id="demo" className="carousel slide bg-dark" data-ride="carousel">
-            <ul className="carousel-indicators">
-                <li data-target="#demo" data-slide-to="0" className="active"></li>
-                <li data-target="#demo" data-slide-to="1"></li>
-                <li data-target="#demo" data-slide-to="2"></li>
-            </ul>
-            <div className="carousel-inner">
-                <div className="carousel-item active">
-                    <img src="no-img.png" className="mx-auto d-block" alt="Los Angeles" width="1100" height="500" />
-                    <div className="carousel-caption">
-                        <h3>Test 1</h3>
-                        <p>{props.testvalue}</p>
-                    </div>
-                </div>
-                <div className="carousel-item">
-                    <img src="no-img.png" className="mx-auto d-block" alt="Chicago" width="1100" height="500" />
-                    <div className="carousel-caption">
-                        <h3>Test 2</h3>
-                        <p>Thank you, Chicago!</p>
-                    </div>
-                </div>
-                <div className="carousel-item">
-                    <img src="no-img.png" className="mx-auto d-block" alt="New York" width="1100" height="500" />
-                    <div className="carousel-caption">
-                        <h3>Test 3</h3>
-                        <p>We love the Big Apple!</p>
-                    </div>
-                </div>
-
-                <a className="carousel-control-prev" href="#demo" data-slide="prev">
-                    <span className="carousel-control-prev-icon"></span>
-                </a>
-                <a className="carousel-control-next" href="#demo" data-slide="next">
-                    <span className="carousel-control-next-icon"></span>
-                </a>
-
-            </div>
-        </div>
-    );
-}
-
-
-
-
-
-
 
 
 function EventCards(props) {
@@ -562,6 +535,7 @@ function EventCards(props) {
     var eventcards = [];
     var allEvent = props.events;
     // console.log(allEvent)
+    allEvent.sort(function (a, b) { return (b.data.status > a.data.status) ? 1 : ((a.data.status > b.data.status) ? -1 : 0); });
 
     for (let index = 0; index < allEvent.length; index++) {
         let event = allEvent[index];
@@ -577,42 +551,15 @@ function EventCard(props) {
             <div className="card-body">
                 <h5 className="card-title">Event: {props.eventNo}</h5>
                 <p className="card-text">{props.event.data.topic}</p>
-                <a href="#" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-gear"></i> manage</a>
+                {props.event.data.status === "done" ?
+                    <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
+                    : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>
+                }
             </div>
         </div>
     );
 
 }
-
-
-function RequestCards(props) {
-
-    var eventcards = [];
-    var allRequest = props.requests;
-    // console.log(allEvent)
-
-    for (let index = 0; index < allRequest.length; index++) {
-        let request = allRequest[index];
-        eventcards.push(<RequestCard key={request.id} request={request} requestNo={index + 1} target={"#" + request.id} />);
-    }
-    return eventcards;
-}
-
-function RequestCard(props) {
-    return (
-        <div className="card text-right">
-            <img className="card-img-top" src={props.request.data.imageUrl} alt="Card image" />
-            <div className="card-body">
-                <h5 className="card-title">Request: {props.requestNo}</h5>
-                <p className="card-text">{props.request.data.topic}</p>
-                <a href="#" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info"></i> detail</a>
-            </div>
-        </div>
-    );
-
-}
-
-
 
 
 function EventModals(props) {
@@ -624,7 +571,7 @@ function EventModals(props) {
 
     for (let index = 0; index < allEvent.length; index++) {
         let event = allEvent[index];
-        eventmodals.push(<EventModal key={event.id} event={event} page={props.page} eventNo={index + 1} target={event.id} onClick={props.onPageClick} />);
+        eventmodals.push(<EventModal key={event.id} event={event} page={props.page} onSubmit={props.onSubmit} eventNo={index + 1} target={event.id} onClick={props.onPageClick} />);
     }
     return eventmodals;
 }
@@ -649,16 +596,191 @@ function EventModal(props) {
                         </button>
                     </div>
 
+                    <form id={props.event.id} onSubmit={props.onSubmit}>
+                        <div className="modal-body">
+                            {codes ?
+                                <button type="button" onClick={props.onClick}>{props.page === 1 ? 'View Code' : 'View Detail'}</button>
+                                : props.page === 1 ? '' :
+                                    <button type="button" onClick={props.onClick}>View Detail</button>
+                            }
+                            <br />
+                            {props.page === 1
+                                ? <div>
+                                    <div className="form-row">
+                                        <div className="form-group col-12">
+                                            <img id="img-upload"
+                                                src={props.event.data.imageUrl}
+                                                className="mx-auto d-block"
+                                                alt="Image"
+                                            // style={{ maxHeight: '300px' }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="form-row">
+                                        {/* <!-- Form Input --> */}
+                                        <div className="form-group col-lg-6">
+                                            {/* eventName & paticipant */}
+                                            <div className="form-row">
+                                                <div className="form-group col-sm-8">
+                                                    <label htmlFor="eventName">Event Name</label>
+                                                    <input type="text"
+                                                        className="form-control"
+                                                        name="eventName"
+                                                        defaultValue={props.event.data.topic}
+                                                        disabled="disabled"
+                                                    />
+                                                </div>
+                                                <div className="form-group col-sm-4">
+                                                    <label htmlFor="participant">Participant</label>
+                                                    <input type="number"
+                                                        className="form-control"
+                                                        name="paticipant"
+                                                        defaultValue={props.event.data.hero}
+                                                        disabled="disabled"
+                                                    />
+                                                </div>
+                                            </div>
+
+
+                                            {/* <!-- if datepicker not work will use datepicker.js instead --> */}
+
+
+                                            {/* startDate & endDate */}
+                                            <div className="form-row">
+                                                <div className="form-group col-sm-12">
+                                                    <label htmlFor="startDate">Start-End</label>
+                                                    <input className="form-control"
+                                                        type="text"
+                                                        name="startDate"
+                                                        defaultValue={props.event.data.timeEvent}
+                                                        disabled="disabled"
+                                                    />
+                                                </div>
+                                            </div>
+
+
+                                            {/* detail */}
+                                            <div className="form-group">
+                                                <label htmlFor="detail">Detail</label>
+                                                <textarea className="form-control"
+                                                    name="detail"
+                                                    defaultValue={props.event.data.detail}
+                                                    style={{ height: '130px' }}
+                                                    disabled="disabled"
+                                                />
+                                            </div>
+                                        </div>
+
+
+                                        {/* <!-- Form map --> */}
+                                        <div className="form-group col-lg-6">
+                                            <label htmlFor="mapEvent">Position</label>
+                                            <MyMapComponent2 />
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                : <div>{codeView}</div>
+                            }
+                        </div>
+
+
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
+                            {/* <button type="submit" value={props.event.id} className="btn btn-primary">Save changes</button> */}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
+function RequestCards(props) {
+
+    var eventcards = [];
+    var allRequest = props.requests;
+    // console.log(allEvent)
+
+    allRequest.sort(function (a, b) { return (b.data.when - a.data.when) });
+
+    for (let index = 0; index < allRequest.length; index++) {
+        let request = allRequest[index];
+        eventcards.push(<RequestCard key={request.id} request={request} requestNo={index + 1} target={"#" + request.id} />);
+    }
+    return eventcards;
+}
+
+function RequestCard(props) {
+    return (
+        <div className="card text-right">
+            <img className="card-img-top" src={props.request.data.imageUrl} alt="Card image" />
+            <div className="card-body">
+                <h5 className="card-title">Request: {props.requestNo}</h5>
+                <p className="card-text">{props.request.data.topic}</p>
+                {props.request.data.status === "done" ?
+                    <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
+                    : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>
+                }
+            </div>
+        </div>
+    );
+
+}
+
+function RequestModals(props) {
+    var requestmodals = [];
+
+    var allRequest = props.requests;
+    // console.log(allEvent)
+    // console.log(props.events)
+
+    for (let index = 0; index < allRequest.length; index++) {
+        let request = allRequest[index];
+        requestmodals.push(<RequestModal key={request.id} request={request} requestNo={index + 1} target={request.id} onClick={props.onPageClick} page={props.page} />);
+    }
+    return requestmodals;
+
+}
+
+function RequestModal(props) {
+    var paticipantView = [];
+    var helpers = props.request.data.Helpers;
+
+    if (helpers) {
+        var paticipants = Object.keys(helpers);
+        for (let index = 0; index < paticipants.length; index++) {
+            let paticipant = paticipants[index];
+            paticipantView.push(<div key={index}>{paticipant}</div>);
+        }
+    }
+    return (
+        <div className="modal fade" id={props.target} role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLongTitle">Request: {props.requestNo}</h5>
+                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
 
                     <div className="modal-body">
-                        <button onClick={props.onClick}>{props.page == 1 ? 'View Code' : 'View Detail'}</button>
+                        {helpers ?
+                            <button type="button" onClick={props.onClick}>{props.page === 1 ? 'View Paticipant' : 'View Detail'}</button>
+                            :
+                            props.page === 1 ? '' :
+                                <button type="button" onClick={props.onClick}>View Detail</button>}
                         <br />
-                        {props.page == 1
-                            ? <div>
+                        {props.page === 1
+                            ?
+                            <div>
                                 <div className="form-row">
                                     <div className="form-group col-12">
                                         <img id="img-upload"
-                                            src={props.event.data.imageUrl}
+                                            src={props.request.data.imageUrl}
                                             className="mx-auto d-block"
                                             alt="Image"
                                         // style={{ maxHeight: '300px' }}
@@ -671,11 +793,11 @@ function EventModal(props) {
                                         {/* eventName & paticipant */}
                                         <div className="form-row">
                                             <div className="form-group col-sm-8">
-                                                <label htmlFor="eventName">Event Name</label>
+                                                <label htmlFor="eventName">Request Name</label>
                                                 <input type="text"
                                                     className="form-control"
                                                     name="eventName"
-                                                    value={props.event.data.topic}
+                                                    defaultValue={props.request.data.topic}
                                                     disabled="disabled"
                                                 />
                                             </div>
@@ -684,28 +806,12 @@ function EventModal(props) {
                                                 <input type="number"
                                                     className="form-control"
                                                     name="paticipant"
-                                                    value={props.event.data.hero}
+                                                    defaultValue={props.request.data.hero}
                                                     disabled="disabled"
                                                 />
                                             </div>
                                         </div>
 
-
-                                        {/* <!-- if datepicker not work will use datepicker.js instead --> */}
-
-
-                                        {/* startDate & endDate */}
-                                        <div className="form-row">
-                                            <div className="form-group col-sm-12">
-                                                <label htmlFor="startDate">Start-End</label>
-                                                <input className="form-control"
-                                                    type="text"
-                                                    name="startDate"
-                                                    value={props.event.data.timeEvent}
-                                                    disabled="disabled"
-                                                />
-                                            </div>
-                                        </div>
 
 
                                         {/* detail */}
@@ -713,15 +819,14 @@ function EventModal(props) {
                                             <label htmlFor="detail">Detail</label>
                                             <textarea className="form-control"
                                                 name="detail"
-                                                value={props.event.data.detail}
-                                                style={{ height: '150px' }}
+                                                defaultValue={props.request.data.detail}
+                                                style={{ height: '130px' }}
                                                 disabled="disabled"
                                             />
                                         </div>
                                     </div>
 
 
-                                    {/* <!-- Form map --> */}
                                     <div className="form-group col-lg-6">
                                         <label htmlFor="mapEvent">Position</label>
                                         <MyMapComponent2 />
@@ -729,15 +834,14 @@ function EventModal(props) {
 
                                 </div>
                             </div>
-
-                            : <div>{codeView}</div>
+                            : <div>{paticipantView}</div>
                         }
+
                     </div>
 
 
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                        {/* <button type="button" className="btn btn-primary">Save changes</button> */}
                     </div>
                 </div>
             </div>
@@ -745,6 +849,8 @@ function EventModal(props) {
     );
 
 }
+
+
 
 // function testA() {
 //     console.log("This form testA");
@@ -883,7 +989,8 @@ const mapStateToProps = (state) => {
         markerPosition: state.positionReducer,
         events: state.eventsReducer,
         requests: state.requestsReducer,
-        user: state.userReducer
+        reports: state.reportsReducer,
+        users: state.usersReducer
     }
 }
 const mapDispatchToProps = (dispatch) => {
@@ -905,6 +1012,22 @@ const mapDispatchToProps = (dispatch) => {
                 type: "REQUESTS_FETCH",
                 payload: requests
             })
+        },
+        addReport: (reports) => {
+            if (reports) {
+                dispatch({
+                    type: "REPORTS_FETCH",
+                    payload: reports
+                })
+            }
+        },
+        addUsers: (users) => {
+            if (users) {
+                dispatch({
+                    type: "USERS_PROFILE_FETCH",
+                    payload: users
+                })
+            }
         }
     }
 }
@@ -912,3 +1035,59 @@ const mapDispatchToProps = (dispatch) => {
 
 
 export default connect(mapStateToProps, mapDispatchToProps)(Event);
+
+
+
+
+
+
+
+
+// function Slide(props) {
+//     return (
+//         <div id="demo" className="carousel slide bg-dark" data-ride="carousel">
+//             <ul className="carousel-indicators">
+//                 <li data-target="#demo" data-slide-to="0" className="active"></li>
+//                 <li data-target="#demo" data-slide-to="1"></li>
+//                 <li data-target="#demo" data-slide-to="2"></li>
+//             </ul>
+//             <div className="carousel-inner">
+//                 <div className="carousel-item active">
+//                     <img src="no-img.png" className="mx-auto d-block" alt="Los Angeles" width="1100" height="500" />
+//                     <div className="carousel-caption">
+//                         <h3>Test 1</h3>
+//                         <p>{props.testvalue}</p>
+//                     </div>
+//                 </div>
+//                 <div className="carousel-item">
+//                     <img src="no-img.png" className="mx-auto d-block" alt="Chicago" width="1100" height="500" />
+//                     <div className="carousel-caption">
+//                         <h3>Test 2</h3>
+//                         <p>Thank you, Chicago!</p>
+//                     </div>
+//                 </div>
+//                 <div className="carousel-item">
+//                     <img src="no-img.png" className="mx-auto d-block" alt="New York" width="1100" height="500" />
+//                     <div className="carousel-caption">
+//                         <h3>Test 3</h3>
+//                         <p>We love the Big Apple!</p>
+//                     </div>
+//                 </div>
+
+//                 <a className="carousel-control-prev" href="#demo" data-slide="prev">
+//                     <span className="carousel-control-prev-icon"></span>
+//                 </a>
+//                 <a className="carousel-control-next" href="#demo" data-slide="next">
+//                     <span className="carousel-control-next-icon"></span>
+//                 </a>
+
+//             </div>
+//         </div>
+//     );
+// }
+
+
+
+
+
+

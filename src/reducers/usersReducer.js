@@ -7,7 +7,13 @@ const users = (state = INITIAL_STATE, action) => {
         // case "USERS_PROFILE_UPDATE":
         //     state = {
         //         ...state,
-        //         users: state.users
+        //         users: {
+        //             [action.id]: {
+        //                 data: {
+        //                     score: action.payload
+        //                 }
+        //             }
+        //         }
         //     }
         //     break;
         case "USERS_PROFILE_FETCH":
@@ -15,6 +21,7 @@ const users = (state = INITIAL_STATE, action) => {
                 ...state,
                 users: action.payload
             }
+            // console.log(state);
             break;
         default:
     }

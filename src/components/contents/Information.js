@@ -38,6 +38,24 @@ class Information extends Component {
     }
 
     componentWillMount() {
+        var allReport = [];
+        var reportsRef = fire.database().ref('reports');
+        reportsRef.on('child_added', snap => {
+            let report = { id: snap.key, data: snap.val() }
+            // this.setState({ users: [user].concat(this.state.users) });
+            // console.log(snap.val());
+            allReport.push(report);
+        });
+        var allUser = [];
+        var usersRef = fire.database().ref('users');
+        usersRef.on('child_added', snap => {
+            let user = { id: snap.key, data: snap.val() }
+            // this.setState({ users: [user].concat(this.state.users) });
+            // console.log(snap.val());
+            allUser.push(user);
+        });
+
+
         // var allInfo = [];
         // var infoRef = fire.database().ref('informations');
         // infoRef.on('child_added', snap => {
@@ -46,6 +64,8 @@ class Information extends Component {
         //     // console.log(snap.val());
         //     allInfo.push(info);
         // });
+        this.props.addUsers(allUser);
+        this.props.addReport(allReport);
 
         this.props.addInformations(allInfo);
         // console.log(this.props);
@@ -135,6 +155,16 @@ class Information extends Component {
 
     }
 
+    _handleSaveChange(e) {
+        e.preventDefault();
+        // var userId = e.target.value;
+        console.log(e.target);
+        // fire.database().ref('users/' + userId + '/Profile').update({
+        //     score: 100,
+        // });
+        console.log("hey wake up!");
+    }
+
 
 
 
@@ -160,7 +190,7 @@ class Information extends Component {
                             </div>
                             <div className="col-4">
                                 <div className="d-flex justify-content-end">
-                                    <a href="#" className="btn btn-primary" data-toggle="modal" data-target="#createInfoModal"><i className="fa fa-plus-square"></i> create</a>
+                                    <a href="" className="btn btn-primary" data-toggle="modal" data-target="#createInfoModal"><i className="fa fa-plus-square"></i> create</a>
                                 </div>
                             </div>
                         </div>
@@ -180,7 +210,7 @@ class Information extends Component {
                             </table>
                         </div>
 
-                        <InfoModals informations={allInfo} />
+                        <InfoModals informations={allInfo} onSubmit={(e) => this._handleSaveChange(e)} />
 
                         <div className="modal fade" id="createInfoModal" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
                             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -195,7 +225,7 @@ class Information extends Component {
 
 
                                     {/* <!-- Form --> */}
-                                    <form onSubmit={(e) => this._handleSubmit(e)} >
+                                    <form onSubmit={(e) => this._handleSubmit(e)} id="createInfo" >
                                         <div className="modal-body">
                                             <div className="form-row">
                                                 {/* <!-- Form Input --> */}
@@ -270,8 +300,6 @@ class Information extends Component {
                                                     <div style={{ color: "red", fontSize: "12px" }}>*In case of position error</div>
 
 
-
-
                                                 </div>
 
 
@@ -294,7 +322,7 @@ class Information extends Component {
                                         {this.state.showCreate ?
                                             <div className="modal-footer">
                                                 <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                <button type="submit" className="btn btn-primary"> Create</button>
+                                                <button type="submit" className="btn btn-primary" value="createInfo"> Create</button>
                                             </div>
                                             :
                                             <div className="modal-footer">
@@ -334,7 +362,7 @@ function InfoRow(props) {
             <td>{props.infoNo}</td>
             <td>{props.info.data.title}</td>
             <td>{props.info.data.type}</td>
-            <td><a href="#" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info-circle"></i> detail</a></td>
+            <td><a href="" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info-circle"></i> detail</a></td>
         </tr>
     );
 
@@ -347,7 +375,7 @@ function InfoModals(props) {
 
     for (let index = 0; index < allInfo.length; index++) {
         let info = allInfo[index];
-        infomodals.push(<InfoModal key={info.id} infoNo={index + 1} info={info} target={info.id} />);
+        infomodals.push(<InfoModal key={info.id} infoNo={index + 1} info={info} target={info.id} onSubmit={props.onSubmit} />);
     }
     return infomodals;
 
@@ -363,40 +391,89 @@ function InfoModal(props) {
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <div className="modal-body">
 
+                    <form id={props.info.id} onSubmit={props.onSubmit} >
                         <div className="modal-body">
-                            <div className="col-12 row">
-                                ID: {props.info.id}
-                            </div>
-                            <br />
-                            <div className="col-12 row d-flex align-items-center">
-                                <div className="col-6">Name: {props.info.data.title}</div>
-                                <div className="col-6">Type: {props.info.data.type}</div>
-                            </div>
-                            <br />
-                            <div className="col-12 row d-flex align-items-center">
-                                <div className="col-6">Contact: {props.info.data.contact}</div>
-                                <div className="col-6">Detail: {props.info.data.detail}</div>
-                            </div>
 
-                            <br />
-                            <div className="col-12 row d-flex align-items-center">
+                            <div className="modal-body">
+                                <div className="form-row">
+                                    <div className="form-group col-lg-6">
+                                        {/* <div className="col-12 row">
+                                        ID: {props.info.id}
+                                    </div> */}
+                                        <div className="form-row">
+                                            <div className="form-group col-sm-6">
+                                                <label htmlFor="name">Name</label>
+                                                <input className="form-control"
+                                                    type="text"
+                                                    name="name"
+                                                    defaultValue={props.info.data.title}
+                                                    disabled="disabled"
+                                                />
+                                            </div>
 
-                                <div className="col-6">Location:  {props.info.data.location}</div>
 
-                                <div className="col-6">
-                                    <button type="button" className="btn btn-light">Go</button>
+                                            <div className="form-group col-sm-6">
+                                                <label htmlFor="type">Type</label>
+                                                <input className="form-control"
+                                                    type="text"
+                                                    name="type"
+                                                    defaultValue={props.info.data.type}
+                                                    disabled="disabled"
+                                                />
+                                            </div>
+                                        </div>
+
+
+                                        <div className="form-row">
+                                            <div className="form-group col-sm-6">
+                                                <label htmlFor="contact">Contact</label>
+                                                <textarea className="form-control"
+                                                    type="text"
+                                                    name="contact"
+                                                    defaultValue={props.info.data.contact}
+                                                    disabled="disabled"
+                                                />
+                                            </div>
+
+
+                                            <div className="form-group col-sm-6">
+                                                <label htmlFor="location">Location</label>
+                                                <textarea className="form-control"
+                                                    type="text"
+                                                    name="location"
+                                                    defaultValue={props.info.data.location}
+                                                    disabled="disabled"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="form-row">
+                                            <div className="form-group col-sm-12">
+                                                <label htmlFor="detail">Detail</label>
+                                                <textarea className="form-control"
+                                                    type="text"
+                                                    name="detail"
+                                                    style={{ height: '100px' }}
+                                                    defaultValue={props.info.data.detail}
+                                                    disabled="disabled"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group col-lg-6">
+                                        <label htmlFor="mapEvent">Position</label>
+                                        <InformationsMap2 />
+                                    </div>
                                 </div>
                             </div>
-
-
                         </div>
-                    </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                        {/* <button type="button" className="btn btn-primary">Save changes</button> */}
-                    </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
+                            {/* <button type="submit" className="btn btn-primary" value={props.info.id}>Save changes</button> */}
+                        </div>
+
+                    </form>
                 </div>
             </div>
         </div>
@@ -495,6 +572,41 @@ const InformationsMap = compose(
     </GoogleMap>
 )
 
+const InformationsMap2 = compose(
+    withProps({
+        googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyCTYHNPsOIlGpD30J91XzKH-NDzqpUA71M&v=3.exp&libraries=geometry,drawing,places",
+        loadingElement: <div style={{ height: `100%` }} />,
+        containerElement: <div style={{ height: `300px` }} />,
+        mapElement: <div style={{ height: `100%`, width: '100%' }} />,
+    }),
+    withStateHandlers(() => ({
+        isOpen: true,
+    }), {
+            onToggleOpen: ({ isOpen }) => () => ({
+                isOpen: !isOpen,
+            })
+        }),
+    withScriptjs,
+    withGoogleMap
+)((props) =>
+    <GoogleMap
+        defaultZoom={8}
+        defaultCenter={positionFirst}
+    >
+        {/* <Marker
+            position={positionFirst}
+            onClick={props.onToggleOpen}
+        >
+            {props.isOpen && <InfoWindow onCloseClick={props.onToggleOpen}>
+                <div>
+                    This is test info
+                </div>
+            </InfoWindow>}
+        </Marker> */}
+
+    </GoogleMap>
+)
+
 
 
 
@@ -512,7 +624,9 @@ const mapStateToProps = (state) => {
     // console.log(state)
     return {
         markerPosition: state.positionReducer,
-        informations: state.informationsReducer
+        informations: state.informationsReducer,
+        reports: state.reportsReducer,
+        users: state.usersReducer
     }
 }
 const mapDispatchToProps = (dispatch) => {
@@ -529,6 +643,22 @@ const mapDispatchToProps = (dispatch) => {
                 dispatch({
                     type: "INFORMATIONS_FETCH",
                     payload: informations
+                })
+            }
+        },
+        addReport: (reports) => {
+            if (reports) {
+                dispatch({
+                    type: "REPORTS_FETCH",
+                    payload: reports
+                })
+            }
+        },
+        addUsers: (users) => {
+            if (users) {
+                dispatch({
+                    type: "USERS_PROFILE_FETCH",
+                    payload: users
                 })
             }
         }

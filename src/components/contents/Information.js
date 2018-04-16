@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import fire from '../../fire';
 import '../../css/bero.css';
-import { compose, withProps, lifecycle, withStateHandlers } from "recompose"
+import { compose, withProps, lifecycle, withStateHandlers, withHandlers } from "recompose"
 import { withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow } from "react-google-maps"
 import { connect } from "react-redux"
+
+import { MarkerClusterer } from "react-google-maps/lib/components/addons/MarkerClusterer";
 
 
 // var allInfo = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -158,11 +160,23 @@ class Information extends Component {
     _handleSaveChange(e) {
         e.preventDefault();
         // var userId = e.target.value;
-        console.log(e.target);
-        // fire.database().ref('users/' + userId + '/Profile').update({
-        //     score: 100,
-        // });
-        console.log("hey wake up!");
+        // console.log(e.target.id);
+        fire.database().ref('informations/' + e.target.id).update({
+            title: e.target.infoName.value,
+            type: e.target.infoType.value,
+            detail: e.target.detail.value,
+            contact: e.target.contact.value,
+            location: e.target.location.value,
+        });
+
+        e.target.submitBtn.disabled = "disabled";
+        e.target.infoName.disabled = "disabled";
+        e.target.infoType.disabled = "disabled";
+        e.target.detail.disabled = "disabled";
+        e.target.contact.disabled = "disabled";
+        e.target.location.disabled = "disabled";
+        alert("Your changes have been saved\n\nPlease refresh page to see your changes");
+        // console.log("hey wake up!");
     }
 
 
@@ -297,7 +311,8 @@ class Information extends Component {
                                                             required
                                                         />
                                                     </div>
-                                                    <div style={{ color: "red", fontSize: "12px" }}>*In case of position error</div>
+
+                                                    <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*In case of position error</div>
 
 
                                                 </div>
@@ -311,6 +326,8 @@ class Information extends Component {
 
 
                                                 {/* progress bar */}
+                                                <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>**Position can't edit please be careful before click 'Create'</div>
+
                                                 <div className="progress col-12">
                                                     <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: this.state.progressBar }} />
                                                 </div>
@@ -406,24 +423,27 @@ function InfoModal(props) {
                                     </div> */}
                                         <div className="form-row">
                                             <div className="form-group col-sm-6">
-                                                <label htmlFor="name">Name</label>
+                                                <label htmlFor="infoName">Name</label>
                                                 <input className="form-control"
                                                     type="text"
-                                                    name="name"
+                                                    name="infoName"
                                                     defaultValue={props.info.data.title}
-                                                    disabled="disabled"
+                                                // disabled="disabled"
                                                 />
                                             </div>
 
 
                                             <div className="form-group col-sm-6">
-                                                <label htmlFor="type">Type</label>
-                                                <input className="form-control"
-                                                    type="text"
-                                                    name="type"
+                                                <label htmlFor="infoType">Type</label>
+                                                <select className="form-control"
+                                                    name="infoType"
                                                     defaultValue={props.info.data.type}
-                                                    disabled="disabled"
-                                                />
+                                                >
+                                                    <option>Police_Station</option>
+                                                    <option>Hospital</option>
+                                                    <option>Fire_Station</option>
+                                                    <option>Etc.</option>
+                                                </select>
                                             </div>
                                         </div>
 
@@ -435,7 +455,7 @@ function InfoModal(props) {
                                                     type="text"
                                                     name="contact"
                                                     defaultValue={props.info.data.contact}
-                                                    disabled="disabled"
+                                                // disabled="disabled"
                                                 />
                                             </div>
 
@@ -446,7 +466,7 @@ function InfoModal(props) {
                                                     type="text"
                                                     name="location"
                                                     defaultValue={props.info.data.location}
-                                                    disabled="disabled"
+                                                // disabled="disabled"
                                                 />
                                             </div>
                                         </div>
@@ -458,7 +478,7 @@ function InfoModal(props) {
                                                     name="detail"
                                                     style={{ height: '100px' }}
                                                     defaultValue={props.info.data.detail}
-                                                    disabled="disabled"
+                                                // disabled="disabled"
                                                 />
                                             </div>
                                         </div>
@@ -468,12 +488,15 @@ function InfoModal(props) {
                                         <label htmlFor="mapEvent">Position</label>
                                         <InformationsMap2 information={props.info} isMarkerShown />
                                     </div>
+
+                                    <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Position can't edit</div>
+
                                 </div>
                             </div>
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                            {/* <button type="submit" className="btn btn-primary" value={props.info.id}>Save changes</button> */}
+                            <button name="submitBtn" type="submit" className="btn btn-primary" value={props.info.id}>Save changes</button>
                         </div>
 
                     </form>
@@ -554,6 +577,13 @@ const InformationsMap = compose(
                 isOpen: !isOpen,
             })
         }),
+    withHandlers({
+        onMarkerClustererClick: () => (markerClusterer) => {
+            const clickedMarkers = markerClusterer.getMarkers()
+            // console.log(`Current clicked markers length: ${clickedMarkers.length}`)
+            // console.log(clickedMarkers)
+        },
+    }),
     withScriptjs,
     withGoogleMap
 )((props) =>
@@ -561,8 +591,15 @@ const InformationsMap = compose(
         defaultZoom={10}
         defaultCenter={{ lat: 13.762036625860015, lng: 100.51755112499995 }}
     >
-        <InformationMarker isOpen={props.isOpen} onClick={props.onToggleOpen}
-            informations={props.informations} />
+        <MarkerClusterer
+            onClick={props.onMarkerClustererClick}
+            averageCenter
+            enableRetinaIcons
+            gridSize={60}
+        >
+            <InformationMarker isOpen={props.isOpen} onToggleOpen={props.onToggleOpen}
+                informations={props.informations} />
+        </MarkerClusterer>
 
     </GoogleMap>
 )
@@ -579,12 +616,17 @@ function InformationMarker(props) {
             informationMarkerView.push(
                 <Marker key={information.id}
                     position={{ lat: information.data.mark_position.latitude, lng: information.data.mark_position.longitude }}
-                    onClick={props.onClick}>
+                    onClick={props.onToggleOpen}>
 
                     {props.isOpen &&
-                        <InfoWindow onCloseClick={props.onClick}>
+                        <InfoWindow onCloseClick={props.onToggleOpen}>
                             <div>
-                                {information.data.title}
+                                <div className="font-weight-bold">
+                                    {index + 1}: {information.data.title}
+                                </div>
+                                <div>
+                                    {information.data.location}
+                                </div>
                             </div>
                         </InfoWindow>}
                 </Marker>

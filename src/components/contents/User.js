@@ -49,6 +49,8 @@ class User extends Component {
         // console.log("hey wake up!");
         e.target.score.disabled = "disabled";
         e.target.submitBtn.disabled = "disabled";
+        alert("Your changes have been saved\n\nPlease refresh page to see your changes");
+
     }
 
 

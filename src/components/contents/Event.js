@@ -345,11 +345,31 @@ class Event extends Component {
     _handleSaveChange(e) {
         e.preventDefault();
         // var userId = e.target.value;
-        console.log(e.target);
-        // fire.database().ref('users/' + userId + '/Profile').update({
-        //     score: 100,
-        // });
-        console.log("hey wake up!");
+        // console.log(e.target.id);
+
+        var startDate = new Date(e.target.startDate.value);
+        var endDate = new Date(e.target.endDate.value);
+
+        var formatStartDate = startDate.getDate() + '/' + (startDate.getMonth() + 1) + '/' + startDate.getFullYear();
+        var formatEndDate = endDate.getDate() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getFullYear();
+
+        fire.database().ref('requests/' + e.target.id).update({
+            topic: e.target.eventName.value,
+            tag: e.target.tag.value,
+            detail: e.target.detail.value,
+            startDate: e.target.startDate.value,
+            endDate: e.target.endDate.value,
+            timeEvent: formatStartDate + '-' + formatEndDate,
+        });
+
+        e.target.submitBtn.disabled = "disabled";
+        e.target.eventName.disabled = "disabled";
+        e.target.tag.disabled = "disabled";
+        e.target.detail.disabled = "disabled";
+        e.target.startDate.disabled = "disabled";
+        e.target.endDate.disabled = "disabled";
+        alert("Your changes have been saved\n\nPlease refresh page to see your changes");
+        // console.log("hey wake up!");
     }
     _copyToClipboard(e) {
         e.preventDefault();
@@ -358,7 +378,12 @@ class Event extends Component {
         document.body.appendChild(textField);
         textField.select();
         document.execCommand('copy');
-        alert("Copied code: " + "success!");
+        if (e.target.value) {
+            alert("Copied code: " + "success!");
+        } else {
+            alert("Copied code: " + "fail! please try again");
+
+        }
         textField.remove();
     }
 
@@ -527,7 +552,7 @@ class Event extends Component {
                                             <MyMapComponent isMarkerShown mapProps={this.props} />
                                         </div>
 
-
+                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Image, Participant and Position can't edit please be careful before click 'Create'</div>
                                         {/* progress bar */}
                                         <div className="progress col-12">
                                             <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: this.state.progressBar }} />
@@ -739,7 +764,7 @@ function EventModal(props) {
                                                         className="form-control"
                                                         name="eventName"
                                                         defaultValue={props.event.data.topic}
-                                                        disabled="disabled"
+                                                    // disabled="disabled"
                                                     />
                                                 </div>
                                             </div>
@@ -750,7 +775,7 @@ function EventModal(props) {
                                                         className="form-control"
                                                         name="tag"
                                                         defaultValue={props.event.data.tag}
-                                                        disabled="disabled"
+                                                    // disabled="disabled"
                                                     />
                                                 </div>
                                                 <div className="form-group col-sm-4">
@@ -777,8 +802,8 @@ function EventModal(props) {
                                                             type="date"
                                                             name="startDate"
                                                             min={todayDate}
-                                                            value={props.event.data.startDate}
-                                                            disabled="disabled"
+                                                            defaultValue={props.event.data.startDate}
+                                                            // disabled="disabled"
                                                             required
                                                         />
                                                     </div>
@@ -788,8 +813,8 @@ function EventModal(props) {
                                                             type="date"
                                                             name="endDate"
                                                             min={props.event.data.startDate}
-                                                            value={props.event.data.endDate < props.event.data.startDate ? props.event.data.startDate : props.event.data.endDate}
-                                                            disabled="disabled"
+                                                            defaultValue={props.event.data.endDate < props.event.data.startDate ? props.event.data.startDate : props.event.data.endDate}
+                                                            // disabled="disabled"
                                                             required
                                                         />
                                                     </div>
@@ -815,7 +840,7 @@ function EventModal(props) {
                                                     name="detail"
                                                     defaultValue={props.event.data.detail}
                                                     style={{ height: '130px' }}
-                                                    disabled="disabled"
+                                                // disabled="disabled"
                                                 />
                                             </div>
                                         </div>
@@ -826,6 +851,7 @@ function EventModal(props) {
                                             <label htmlFor="mapEvent">Position</label>
                                             <MyMapComponent2 information={props.event} />
                                         </div>
+                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Image, Participant and Position can't edit</div>
 
                                     </div>
                                 </div>
@@ -839,7 +865,7 @@ function EventModal(props) {
 
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                            {/* <button type="submit" value={props.event.id} className="btn btn-primary">Save changes</button> */}
+                            <button name="submitBtn" type="submit" value={props.event.id} className="btn btn-primary">Save changes</button>
                         </div>
                     </form>
                 </div>

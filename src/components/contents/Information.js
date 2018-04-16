@@ -181,7 +181,7 @@ class Information extends Component {
                 </div>
                 <div className="row">
                     <div className="col-12 col-xl-6">
-                        <InformationsMap isMarkerShown />
+                        <InformationsMap informations={allInfo} isMarkerShown />
                     </div>
                     <div className="col-12 col-xl-6">
                         <div className="row">
@@ -348,10 +348,12 @@ function InfoRows(props) {
     var inforows = [];
     var allInfo = props.informations;
 
-    for (let index = 0; index < allInfo.length; index++) {
-        let info = allInfo[index];
-        // console.log(info.id)
-        inforows.push(<InfoRow key={info.id} infoNo={index + 1} info={info} target={"#" + info.id} />);
+    if (allInfo) {
+        for (let index = 0; index < allInfo.length; index++) {
+            let info = allInfo[index];
+            // console.log(info.id)
+            inforows.push(<InfoRow key={info.id} infoNo={index + 1} info={info} target={"#" + info.id} />);
+        }
     }
     return inforows;
 
@@ -372,10 +374,11 @@ function InfoModals(props) {
     var infomodals = [];
     var allInfo = props.informations;
     // console.log(allInfo)
-
-    for (let index = 0; index < allInfo.length; index++) {
-        let info = allInfo[index];
-        infomodals.push(<InfoModal key={info.id} infoNo={index + 1} info={info} target={info.id} onSubmit={props.onSubmit} />);
+    if (allInfo) {
+        for (let index = 0; index < allInfo.length; index++) {
+            let info = allInfo[index];
+            infomodals.push(<InfoModal key={info.id} infoNo={index + 1} info={info} target={info.id} onSubmit={props.onSubmit} />);
+        }
     }
     return infomodals;
 
@@ -463,7 +466,7 @@ function InfoModal(props) {
 
                                     <div className="form-group col-lg-6">
                                         <label htmlFor="mapEvent">Position</label>
-                                        <InformationsMap2 />
+                                        <InformationsMap2 information={props.info} isMarkerShown />
                                     </div>
                                 </div>
                             </div>
@@ -522,7 +525,7 @@ const SelectPositionMap = compose(
     withGoogleMap
 )((props) =>
     <GoogleMap
-        defaultZoom={8}
+        defaultZoom={10}
         defaultCenter={positionFirst}
     >
         {props.isMarkerShown &&
@@ -555,22 +558,44 @@ const InformationsMap = compose(
     withGoogleMap
 )((props) =>
     <GoogleMap
-        defaultZoom={8}
-        defaultCenter={positionFirst}
+        defaultZoom={10}
+        defaultCenter={{ lat: 13.762036625860015, lng: 100.51755112499995 }}
     >
-        <Marker
-            position={positionFirst}
-            onClick={props.onToggleOpen}
-        >
-            {props.isOpen && <InfoWindow onCloseClick={props.onToggleOpen}>
-                <div>
-                    This is test info
-                </div>
-            </InfoWindow>}
-        </Marker>
+        <InformationMarker isOpen={props.isOpen} onClick={props.onToggleOpen}
+            informations={props.informations} />
 
     </GoogleMap>
 )
+
+function InformationMarker(props) {
+    var informationMarkerView = [];
+    var informations = props.informations;
+    // console.log(informations)
+    if (informations) {
+        for (let index = 0; index < informations.length; index++) {
+            const information = informations[index];
+
+            // console.log(information.data.mark_position.latitude)
+            informationMarkerView.push(
+                <Marker key={information.id}
+                    position={{ lat: information.data.mark_position.latitude, lng: information.data.mark_position.longitude }}
+                    onClick={props.onClick}>
+
+                    {props.isOpen &&
+                        <InfoWindow onCloseClick={props.onClick}>
+                            <div>
+                                {information.data.title}
+                            </div>
+                        </InfoWindow>}
+                </Marker>
+            );
+
+        }
+
+    }
+    return informationMarkerView
+
+}
 
 const InformationsMap2 = compose(
     withProps({
@@ -590,19 +615,19 @@ const InformationsMap2 = compose(
     withGoogleMap
 )((props) =>
     <GoogleMap
-        defaultZoom={8}
-        defaultCenter={positionFirst}
+        defaultZoom={10}
+        defaultCenter={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
     >
-        {/* <Marker
-            position={positionFirst}
+        <Marker
+            position={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
             onClick={props.onToggleOpen}
         >
             {props.isOpen && <InfoWindow onCloseClick={props.onToggleOpen}>
                 <div>
-                    This is test info
+                    {props.information.data.title}
                 </div>
             </InfoWindow>}
-        </Marker> */}
+        </Marker>
 
     </GoogleMap>
 )

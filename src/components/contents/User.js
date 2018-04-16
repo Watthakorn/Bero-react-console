@@ -106,7 +106,7 @@ function UserRow(props) {
     return (
         <tr>
             <td>{props.profile.facebookUid}</td>
-            <td><img src={props.profile.profilePicture} /></td>
+            <td><img className="border border-primary rounded" src={props.profile.profilePicture} style={{ width: "75px", height: "75px" }} /></td>
             <td>{props.profile.displayName}</td>
             <td>{props.profile.score}</td>
             <td><a href="" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info-circle"></i> detail</a></td>
@@ -142,26 +142,41 @@ function UserModal(props) {
                     <form id={props.user.id} onSubmit={props.onSubmit}>
                         <div className="modal-body">
                             <div className="row col-12">
-                                <div className="col-md-4 col-lg-2"><img src={props.profile.profilePicture} /></div>
+                                {/* <div className="col-md-4 col-lg-2">
+                                    <img className="border border-primary rounded" src={props.profile.profilePicture} style={{ width: "75px", height: "75px" }} />
+                                </div>
                                 <div className="col-md-8 col-lg-10">
                                     <br />
                                     <div className="col-12">Name: {props.profile.displayName}</div>
                                     <div className="col-12">Skill: {props.profile.skill}</div>
+                                </div> */}
+                                <div className="col-2">
+                                    <div className="col-12">
+                                        <img src={props.profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
+                                    </div>
+                                </div>
+                                <div className="col-10 container-fluid d-flex align-content-around flex-wrap">
+                                    <div className="col-12">
+                                        <p style={{ "wordWrap": "break-word" }}>Name: {props.profile.displayName}</p>
+                                    </div>
+                                    <div className="col-12 font-weight-light mt-auto">
+                                        Skill: {props.profile.skill}
+                                    </div>
                                 </div>
                             </div>
-                            <br />
+                            <hr />
                             <div className="col-12 row d-flex align-items-center">
                                 <div className="col-6">Current Request: {props.profile.requestCreate}</div>
                                 <div className="col-6">Status: {props.profile.statusCreate}</div>
                             </div>
-
+                            <hr />
                             <div className="col-12 row d-flex align-items-center">
                                 <div className="col-6">Response Request: {props.profile.requestAccepted}</div>
                                 <div className="col-6">Status: {props.profile.statusRequest}</div>
                             </div>
 
 
-                            <br />
+                            <hr />
                             <div className="col-12 row">
                                 <div className="col-6 d-flex align-items-center">
                                     <div>
@@ -180,10 +195,11 @@ function UserModal(props) {
                                 </div>
                                 <div className="col-6 d-flex align-items-center">
 
-                                    ChangeScore_
+                                    ChangeScore
                                 <input type="number"
                                         className="form-control"
                                         name="score"
+                                        style={{ marginLeft: "10px" }}
                                         defaultValue={props.profile.score}
                                         disabled=""
                                     />

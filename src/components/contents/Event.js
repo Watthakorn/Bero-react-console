@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import fire from '../../fire';
 import '../../css/bero.css';
-import { compose, withProps, lifecycle } from "recompose"
-import { withScriptjs, withGoogleMap, GoogleMap, Marker } from "react-google-maps"
+import { compose, withProps, lifecycle, withStateHandlers } from "recompose"
+import { withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow } from "react-google-maps"
 import { connect } from "react-redux"
 import GeoFire from "geofire"
 
@@ -73,6 +73,7 @@ class Event extends Component {
             progressBar: '',
             disabled: false,
             showCreate: true,
+            tag: '',
             page: 1,
             pageEvent: 1
         };
@@ -115,6 +116,8 @@ class Event extends Component {
         this.setState({
             [name]: value
         });
+
+        // console.log(this.props.user.user.providerData[0].uid)
         // console.log((new Date('2018-02-01')).getDate())
         // console.log(this.state.startDate)
         // console.log(this.state[name]);
@@ -193,7 +196,7 @@ class Event extends Component {
                 //database push HERE
                 databaseRef.child(newEventKey).set({
                     detail: state.detail,
-                    facebookUid: '1540761695946142',
+                    facebookUid: props.user.user.providerData[0].uid,
                     hero: state.paticipant,
                     heroAccepted: 0,
                     imageUrl: downloadURL,
@@ -202,12 +205,15 @@ class Event extends Component {
                         longitude: markerPosition.lng
                     },
                     must_be: 'all',
-                    ownerName: 'none',
-                    ownerprofilePicture: "http://graph.facebook.com/1449629778454500/picture?type=square",
+                    ownerName: props.user.user.displayName,
+                    ownerprofilePicture: "http://graph.facebook.com/" + props.user.user.providerData[0].uid + "/picture?type=square",
                     ownerUid: "none",
                     rated: 0,
+                    tag: state.tag,
                     requestType: 'Event',
                     timeEvent: formatStartDate + '-' + formatEndDate,
+                    startDate: state.startDate,
+                    endDate: state.endDate,
                     status: 'in-progress',
                     topic: state.eventName,
                     type: 'Event',
@@ -312,6 +318,18 @@ class Event extends Component {
         }
     }
 
+    _handleChangePage2(e) {
+        if (this.state.page === 1) {
+            this.setState({
+                page: 3,
+            })
+        } else {
+            this.setState({
+                page: 1,
+            })
+        }
+    }
+
     _handleChangePageEvent(e) {
         if (this.state.pageEvent === 1) {
             this.setState({
@@ -332,6 +350,16 @@ class Event extends Component {
         //     score: 100,
         // });
         console.log("hey wake up!");
+    }
+    _copyToClipboard(e) {
+        e.preventDefault();
+        var textField = document.createElement('textarea');
+        textField.innerText = e.target.value;
+        document.body.appendChild(textField);
+        textField.select();
+        document.execCommand('copy');
+        alert("Copied code: " + "success!");
+        textField.remove();
     }
 
     render() {
@@ -409,12 +437,25 @@ class Event extends Component {
                                         <div className="form-group col-lg-6">
                                             {/* eventName & paticipant */}
                                             <div className="form-row">
-                                                <div className="form-group col-sm-8">
+                                                <div className="form-group col-sm-12">
                                                     <label htmlFor="eventName">Event Name</label>
                                                     <input type="text"
                                                         className="form-control"
                                                         name="eventName"
                                                         value={this.state.eventName}
+                                                        onChange={(e) => this._handleInputChange(e)}
+                                                        disabled={(this.state.disabled) ? "disabled" : ""}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="form-row">
+                                                <div className="form-group col-sm-8">
+                                                    <label htmlFor="tag">Tag</label>
+                                                    <input type="text"
+                                                        className="form-control"
+                                                        name="tag"
+                                                        value={this.state.tag}
                                                         onChange={(e) => this._handleInputChange(e)}
                                                         disabled={(this.state.disabled) ? "disabled" : ""}
                                                         required
@@ -522,7 +563,11 @@ class Event extends Component {
                     </div>
                 </div>
 
-                <EventModals events={allEvent} page={this.state.page} onSubmit={(e) => this._handleSaveChange(e)} onPageClick={(e) => this._handleChangePage(e)} />
+                <EventModals events={allEvent} page={this.state.page}
+                    onSubmit={(e) => this._handleSaveChange(e)}
+                    onPageClick={(e) => this._handleChangePage(e)}
+                    onPageClick2={(e) => this._handleChangePage2(e)}
+                    onClickCopy={(e) => this._copyToClipboard(e)} />
                 <RequestModals requests={allRequest} page={this.state.page} onPageClick={(e) => this._handleChangePage(e)} />
             </div>
         );
@@ -571,17 +616,71 @@ function EventModals(props) {
 
     for (let index = 0; index < allEvent.length; index++) {
         let event = allEvent[index];
-        eventmodals.push(<EventModal key={event.id} event={event} page={props.page} onSubmit={props.onSubmit} eventNo={index + 1} target={event.id} onClick={props.onPageClick} />);
+        eventmodals.push(<EventModal key={event.id} event={event} page={props.page} onSubmit={props.onSubmit}
+            eventNo={index + 1} target={event.id}
+            onClick={props.onPageClick} onClick2={props.onPageClick2} onCopy={props.onClickCopy} />);
     }
     return eventmodals;
 }
 function EventModal(props) {
     var codeView = [];
+    var codeString = '';
     var codes = allCode[allCodeKey.indexOf(props.event.id)];
     if (codes) {
         for (let index = 0; index < codes.length; index++) {
             let code = codes[index];
-            codeView.push(<div key={code[0]}>{code[0]} : {code[1]}</div>);
+            codeString += ' ' + code[0] + ' ';
+            codeView.push(
+                <div key={code[0]}>
+                    <div className="row">
+                        <div className="col-6">
+                            {code[0]}
+                        </div>
+                        <div className="col-6">
+                            {code[1] === "not_activate" ? <p className="text-danger">Not Activate</p> : <p className="text-success">Activated</p>}
+                        </div>
+                    </div>
+                    <hr />
+                </div>);
+            // console.log(codeString)
+        }
+    }
+    var commentView = [];
+    var comments = props.event.data.Comments;
+    if (comments) {
+        var commentsKey = Object.keys(comments);
+        for (let index = 0; index < commentsKey.length; index++) {
+            let commentKey = commentsKey[index]
+            let comment = comments[commentKey];
+            // console.log(comment);
+            var commentDate = new Date(comment.when);
+
+
+            // var commentDateFormat = commentDate.getDate() + ' ' + (commentDate.getMonth() + 1) + ' ' + commentDate.getFullYear()
+            //     + ' ' + commentDate.getHours() + ':' + commentDate.getMinutes();
+            // console.log(commentDate)
+            commentView.push(
+                <div key={commentKey}>
+                    <div className="row">
+                        <div className="col-2">
+                            <div className="col-12">
+                                <img src={comment.ownerprofilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
+                            </div>
+                            <div className="col-12 font-weight-bold">
+                                {comment.ownerName}
+                            </div>
+                        </div>
+                        <div className="col-10 container-fluid d-flex align-content-around flex-wrap">
+                            <div className="col-12">
+                                <p style={{ "wordWrap": "break-word" }}>{comment.comment}</p>
+                            </div>
+                            <div className="col-12 font-weight-light mt-auto">
+                                {commentDate.toDateString() + ' ' + commentDate.toLocaleTimeString()}
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                </div>);
         }
     }
     // var page = 1;
@@ -599,11 +698,24 @@ function EventModal(props) {
                     <form id={props.event.id} onSubmit={props.onSubmit}>
                         <div className="modal-body">
                             {codes ?
-                                <button type="button" onClick={props.onClick}>{props.page === 1 ? 'View Code' : 'View Detail'}</button>
-                                : props.page === 1 ? '' :
-                                    <button type="button" onClick={props.onClick}>View Detail</button>
+                                props.page === 1 ?
+                                    <button style={{ marginRight: "10px" }} type="button" onClick={props.onClick}>View Codes</button>
+                                    : '' : ''
                             }
-                            <br />
+                            {comments ?
+                                props.page === 1 ?
+                                    <button style={{ marginRight: "10px" }} type="button" onClick={props.onClick2}>View Comments</button>
+                                    : '' : ''
+                            }
+                            {props.page === 1 ?
+                                '' : props.page === 2 && codes ?
+                                    <div>
+                                        <button style={{ marginRight: "10px" }} type="button" onClick={props.onClick}>View Detail</button>
+                                        <button className="btn" type="submit" onClick={props.onCopy} value={codeString}> <i className="fa fa-copy" /></button>
+                                    </div>
+                                    : <button type="button" onClick={props.onClick}>View Detail</button>
+                            }
+                            <hr />
                             {props.page === 1
                                 ? <div>
                                     <div className="form-row">
@@ -621,12 +733,23 @@ function EventModal(props) {
                                         <div className="form-group col-lg-6">
                                             {/* eventName & paticipant */}
                                             <div className="form-row">
-                                                <div className="form-group col-sm-8">
+                                                <div className="form-group col-sm-12">
                                                     <label htmlFor="eventName">Event Name</label>
                                                     <input type="text"
                                                         className="form-control"
                                                         name="eventName"
                                                         defaultValue={props.event.data.topic}
+                                                        disabled="disabled"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="form-row">
+                                                <div className="form-group col-sm-8">
+                                                    <label htmlFor="tag">Tag</label>
+                                                    <input type="text"
+                                                        className="form-control"
+                                                        name="tag"
+                                                        defaultValue={props.event.data.tag}
                                                         disabled="disabled"
                                                     />
                                                 </div>
@@ -646,17 +769,43 @@ function EventModal(props) {
 
 
                                             {/* startDate & endDate */}
-                                            <div className="form-row">
-                                                <div className="form-group col-sm-12">
-                                                    <label htmlFor="startDate">Start-End</label>
-                                                    <input className="form-control"
-                                                        type="text"
-                                                        name="startDate"
-                                                        defaultValue={props.event.data.timeEvent}
-                                                        disabled="disabled"
-                                                    />
+                                            {props.event.data.startDate && props.event.data.endDate ?
+                                                <div className="form-row">
+                                                    <div className="form-group col-sm-6">
+                                                        <label htmlFor="startDate">Start</label>
+                                                        <input className="form-control"
+                                                            type="date"
+                                                            name="startDate"
+                                                            min={todayDate}
+                                                            value={props.event.data.startDate}
+                                                            disabled="disabled"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="form-group col-sm-6">
+                                                        <label htmlFor="endDate">End</label>
+                                                        <input className="form-control"
+                                                            type="date"
+                                                            name="endDate"
+                                                            min={props.event.data.startDate}
+                                                            value={props.event.data.endDate < props.event.data.startDate ? props.event.data.startDate : props.event.data.endDate}
+                                                            disabled="disabled"
+                                                            required
+                                                        />
+                                                    </div>
                                                 </div>
-                                            </div>
+                                                :
+                                                <div className="form-row">
+                                                    <div className="form-group col-sm-12">
+                                                        <label htmlFor="startDate">Start-End</label>
+                                                        <input className="form-control"
+                                                            type="text"
+                                                            name="startDate"
+                                                            defaultValue={props.event.data.timeEvent}
+                                                            disabled="disabled"
+                                                        />
+                                                    </div>
+                                                </div>}
 
 
                                             {/* detail */}
@@ -675,13 +824,15 @@ function EventModal(props) {
                                         {/* <!-- Form map --> */}
                                         <div className="form-group col-lg-6">
                                             <label htmlFor="mapEvent">Position</label>
-                                            <MyMapComponent2 />
+                                            <MyMapComponent2 information={props.event} />
                                         </div>
 
                                     </div>
                                 </div>
 
-                                : <div>{codeView}</div>
+                                : props.page === 2 ?
+                                    <div>{codeView}</div>
+                                    : <div>{commentView}</div>
                             }
                         </div>
 
@@ -829,7 +980,7 @@ function RequestModal(props) {
 
                                     <div className="form-group col-lg-6">
                                         <label htmlFor="mapEvent">Position</label>
-                                        <MyMapComponent2 />
+                                        <MyMapComponent2 information={props.request} />
                                     </div>
 
                                 </div>
@@ -869,47 +1020,31 @@ const MyMapComponent2 = compose(
         containerElement: <div style={{ height: `300px` }} />,
         mapElement: <div style={{ height: `100%`, width: '100%' }} />,
     }),
-    lifecycle({
-        componentWillMount() {
-            const refs = {}
-
-            this.setState({
-                position: null,
-                onMarkerMounted: ref => {
-                    refs.marker = ref;
-                },
-
-                onPositionChanged: () => {
-                    const position = refs.marker.getPosition();
-                    // console.log(position.toString());
-                    positionFirst = {
-                        lat: position.lat(),
-                        lng: position.lng()
-                    }
-
-                    this.props.mapProps.changePosition(positionFirst);
-
-
-                    // console.log(this.props.mapProps.markerPosition);
-                    // console.log(positionFirst);
-                }
+    withStateHandlers(() => ({
+        isOpen: true,
+    }), {
+            onToggleOpen: ({ isOpen }) => () => ({
+                isOpen: !isOpen,
             })
-
-        },
-    }),
+        }),
     withScriptjs,
     withGoogleMap
 )((props) =>
     <GoogleMap
-        defaultZoom={8}
-        defaultCenter={positionFirst}
+        defaultZoom={10}
+        defaultCenter={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
     >
-        {props.isMarkerShown &&
-            <Marker position={positionFirst}
-            // draggable={true}
-            // ref={props.onMarkerMounted}
-            // onDragEnd={props.onPositionChanged}
-            />}
+        <Marker
+            position={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
+            onClick={props.onToggleOpen}
+        >
+            {props.isOpen && <InfoWindow onCloseClick={props.onToggleOpen}>
+                <div>
+                    {props.information.data.topic}
+                </div>
+            </InfoWindow>}
+        </Marker>
+
     </GoogleMap>
 )
 
@@ -990,7 +1125,8 @@ const mapStateToProps = (state) => {
         events: state.eventsReducer,
         requests: state.requestsReducer,
         reports: state.reportsReducer,
-        users: state.usersReducer
+        users: state.usersReducer,
+        user: state.userReducer
     }
 }
 const mapDispatchToProps = (dispatch) => {

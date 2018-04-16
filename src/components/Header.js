@@ -59,9 +59,9 @@ class Header extends Component {
                         <div className="nav col-6 col-sm-7 col-md-7 top-title bg-light d-flex justify-content-end">
                             <div className="d-flex align-items-center">
                                 <div className="col-12">
-                                    {user ?
+                                    {user ? user.type === "Admin" ?
                                         <NotiBell reports={reports} />
-                                        : ''
+                                        : '' : ''
                                     }
                                 </div>
                             </div>
@@ -102,14 +102,15 @@ function NotiBell(props) {
 function ReportNoti(props) {
     var reportcards = [];
     var allReport = props.allReport;
-
-    for (let index = 0; index < allReport.length; index++) {
-        let report = allReport[index];
-        if (report.data.status === "inprogress") {
-            reportcards.push(<div key={report.id}>
-                <button className="dropdown-item" type="button" data-toggle="modal" data-target={"#" + report.id}><i className="fa fa-info-circle" /> {report.data.title}</button>
-                <div className="dropdown-divider"></div>
-            </div>);
+    if (allReport) {
+        for (let index = 0; index < allReport.length; index++) {
+            let report = allReport[index];
+            if (report.data.status === "inprogress") {
+                reportcards.push(<div key={report.id}>
+                    <button className="dropdown-item" type="button" data-toggle="modal" data-target={"#" + report.id}><i className="fa fa-info-circle" /> {report.data.title}</button>
+                    <div className="dropdown-divider"></div>
+                </div>);
+            }
         }
     }
     return reportcards;
@@ -119,9 +120,11 @@ function ReportNoti(props) {
 function ReportModals(props) {
     var reportmodals = [];
     var allReport = props.allReport;
-    for (let index = 0; index < allReport.length; index++) {
-        let report = allReport[index];
-        reportmodals.push(<ReportModal key={report.id} report={report} reportNo={index + 1} target={report.id} onClick={props.onClick} onSubmit={props.onSubmit} />);
+    if (allReport) {
+        for (let index = 0; index < allReport.length; index++) {
+            let report = allReport[index];
+            reportmodals.push(<ReportModal key={report.id} report={report} reportNo={index + 1} target={report.id} onClick={props.onClick} onSubmit={props.onSubmit} />);
+        }
     }
     return reportmodals;
 

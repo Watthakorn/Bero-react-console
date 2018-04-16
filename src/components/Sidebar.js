@@ -5,9 +5,21 @@ import { connect } from "react-redux";
 import '../css/bero.css';
 
 class Sidebar extends Component {
+    componentWillMount() {
+
+        var thisState = this;
+        if (this.props.user.user) {
+            var userId = this.props.user.user.uid;
+            fire.database().ref('/users/' + userId + '/Profile/type').on('value', function (snapshot) {
+                thisState.props.typeAdmin(snapshot.val());
+            });
+        }
+
+    }
 
     async loginFacebook() {
         var user = [];
+        var thisState = this;
         if (auth().currentUser) {
             this.props.loginFace(auth().currentUser);
 
@@ -34,7 +46,14 @@ class Sidebar extends Component {
 
             });
             this.props.loginFace(auth().currentUser);
+
+            var userId = this.props.user.user.uid;
+            fire.database().ref('/users/' + userId + '/Profile/type').on('value', function (snapshot) {
+                thisState.props.typeAdmin(snapshot.val());
+            });
         }
+
+
 
     }
 
@@ -72,8 +91,7 @@ class Sidebar extends Component {
                             {/* {JSON.stringify(this.props.user.user)} */}
                         </div>
                     </div>
-                    {user
-                        ?
+                    {user ? user.type === "Admin" ?
                         <div>
                             <ul className="navbar-nav flex-column">
                                 {/* <!-- ADMIN Sidebar --> */}
@@ -97,7 +115,7 @@ class Sidebar extends Component {
                                 </li>
                             </ul>
                         </div>
-                        : ''
+                        : '' : ''
                     }
 
 
@@ -115,13 +133,16 @@ function AlreadyLogin(props) {
             <div>
                 <div className="row">
                     <div className="col-12 col-xl-6">
-                        <img src={"http://graph.facebook.com/" + user.providerData[0].uid + "/picture?type=square"} />
+                        {user.providerData ?
+                            <img src={"http://graph.facebook.com/" + user.providerData[0].uid + "/picture?type=square"}
+                                style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
+                            : ''}
                     </div>
                     <div className="col-12 col-xl-6  d-flex align-items-center">
-                        {user.displayName}
+                        <p style={{ "wordWrap": "break-word" }}>{user.displayName}</p>
                     </div>
                 </div>
-                <br />
+                <hr />
             </div>
         );
 
@@ -167,6 +188,12 @@ const mapDispatchToProps = (dispatch) => {
         logoutFace: (users) => {
             dispatch({
                 type: "LOGOUT_USER"
+            })
+        },
+        typeAdmin: (type) => {
+            dispatch({
+                type: "TYPE_ADMIN",
+                payload: type
             })
         }
     }

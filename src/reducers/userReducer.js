@@ -10,9 +10,17 @@ const user = (state = userState, action) => {
                 user: action.payload
             }
             break;
-        case "LOGOUT_USER":
+        case "TYPE_ADMIN":
             state = {
                 ...state,
+                user: {
+                    ...state.user,
+                    type: action.payload
+                }
+            }
+            break;
+        case "LOGOUT_USER":
+            state = {
                 user: null
             }
             break;

@@ -346,28 +346,40 @@ class Event extends Component {
         e.preventDefault();
         // var userId = e.target.value;
         // console.log(e.target.id);
+        var formatDate = '';
+        var start = '';
+        var end = '';
+        if (e.target.startDate && e.target.endDate) {
+            var startDate = new Date(e.target.startDate.value);
+            var endDate = new Date(e.target.endDate.value);
 
-        var startDate = new Date(e.target.startDate.value);
-        var endDate = new Date(e.target.endDate.value);
+            var formatStartDate = startDate.getDate() + '/' + (startDate.getMonth() + 1) + '/' + startDate.getFullYear();
+            var formatEndDate = endDate.getDate() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getFullYear();
 
-        var formatStartDate = startDate.getDate() + '/' + (startDate.getMonth() + 1) + '/' + startDate.getFullYear();
-        var formatEndDate = endDate.getDate() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getFullYear();
+            formatDate = formatStartDate + '-' + formatEndDate;
+            start = e.target.startDate.value;
+            end = e.target.endDate.value;
+        } else {
+            formatDate = e.target.timeDate.value;
+        }
 
         fire.database().ref('requests/' + e.target.id).update({
             topic: e.target.eventName.value,
             tag: e.target.tag.value,
             detail: e.target.detail.value,
-            startDate: e.target.startDate.value,
-            endDate: e.target.endDate.value,
-            timeEvent: formatStartDate + '-' + formatEndDate,
+            startDate: start,
+            endDate: end,
+            timeEvent: formatDate,
         });
 
         e.target.submitBtn.disabled = "disabled";
         e.target.eventName.disabled = "disabled";
         e.target.tag.disabled = "disabled";
         e.target.detail.disabled = "disabled";
-        e.target.startDate.disabled = "disabled";
-        e.target.endDate.disabled = "disabled";
+        if (e.target.startDate && e.target.endDate) {
+            e.target.startDate.disabled = "disabled";
+            e.target.endDate.disabled = "disabled";
+        }
         alert("Your changes have been saved\n\nPlease refresh page to see your changes");
         // console.log("hey wake up!");
     }
@@ -822,10 +834,10 @@ function EventModal(props) {
                                                 :
                                                 <div className="form-row">
                                                     <div className="form-group col-sm-12">
-                                                        <label htmlFor="startDate">Start-End</label>
+                                                        <label htmlFor="timeDate">Start-End</label>
                                                         <input className="form-control"
                                                             type="text"
-                                                            name="startDate"
+                                                            name="timeDate"
                                                             defaultValue={props.event.data.timeEvent}
                                                             disabled="disabled"
                                                         />
@@ -865,7 +877,9 @@ function EventModal(props) {
 
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button name="submitBtn" type="submit" value={props.event.id} className="btn btn-primary">Save changes</button>
+                            {props.page === 1 ?
+                                <button name="submitBtn" type="submit" value={props.event.id} className="btn btn-primary">Save changes</button>
+                                : ''}
                         </div>
                     </form>
                 </div>

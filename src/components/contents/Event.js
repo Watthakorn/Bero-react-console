@@ -569,6 +569,7 @@ class Event extends Component {
                                                     value={this.state.detail}
                                                     onChange={(e) => this._handleInputChange(e)}
                                                     disabled={(this.state.disabled) ? "disabled" : ""}
+                                                    style={{ minHeight: '190px' }}
                                                     required
                                                 />
                                             </div>
@@ -588,6 +589,7 @@ class Event extends Component {
                                                     value={this.state.location}
                                                     onChange={(e) => this._handleInputChange(e)}
                                                     disabled={(this.state.disabled) ? "disabled" : ""}
+                                                    style={{ minHeight: '100px' }}
                                                     required
                                                 />
                                             </div>
@@ -659,10 +661,12 @@ function EventCards(props) {
 function EventCard(props) {
     return (
         <div className="card text-right">
-            <img className="card-img-top" src={props.event.data.imageUrl} alt="Card image" />
+            <div className="bero-eventpic">
+                <img className="card-img-top" src={props.event.data.imageUrl} alt="Card image" />
+            </div>
             <div className="card-body">
                 <h5 className="card-title">Event: {props.eventNo}</h5>
-                <p className="card-text">{props.event.data.topic}</p>
+                <p className="card-text topic-overflow">{props.event.data.topic}</p>
                 {props.event.data.status === "done" ?
                     <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
                     : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>
@@ -742,7 +746,7 @@ function EventModal(props) {
                                 <p style={{ "wordWrap": "break-word" }}>{comment.comment}</p>
                             </div>
                             <div className="col-12 font-weight-light mt-auto">
-                                {commentDate.toDateString() + ' ' + commentDate.toLocaleTimeString()}
+                                {commentDate.toString()}
                             </div>
                         </div>
                     </div>
@@ -881,7 +885,7 @@ function EventModal(props) {
                                                 <textarea className="form-control"
                                                     name="detail"
                                                     defaultValue={props.event.data.detail}
-                                                    style={{ height: '130px' }}
+                                                    style={{ minHeight: '190px' }}
                                                 // disabled="disabled"
                                                 />
                                             </div>
@@ -899,7 +903,7 @@ function EventModal(props) {
                                                 <textarea className="form-control"
                                                     name="location"
                                                     defaultValue={props.event.data.location}
-                                                // style={{ height: '130px' }}
+                                                    style={{ minHeight: '100px' }}
                                                 // disabled="disabled"
                                                 />
                                             </div>
@@ -948,10 +952,12 @@ function RequestCards(props) {
 function RequestCard(props) {
     return (
         <div className="card text-right">
-            <img className="card-img-top" src={props.request.data.imageUrl} alt="Card image" />
+            <div className="bero-eventpic">
+                <img className="card-img-top" src={props.request.data.imageUrl} alt="Card image" />
+            </div>
             <div className="card-body">
                 <h5 className="card-title">Request: {props.requestNo}</h5>
-                <p className="card-text">{props.request.data.topic}</p>
+                <p className="card-text topic-overflow">{props.request.data.topic}</p>
                 {props.request.data.status === "done" ?
                     <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
                     : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>
@@ -1096,6 +1102,16 @@ function RequestModal(props) {
                                         </div>
 
 
+                                        <div className="form-group">
+                                            <label htmlFor="timeRequest">RequestTime</label>
+                                            <input type="text"
+                                                className="form-control"
+                                                name="participant"
+                                                defaultValue={(new Date(props.request.data.when)).toString()}
+                                                disabled="disabled"
+                                            />
+                                        </div>
+
 
                                         {/* detail */}
                                         <div className="form-group">
@@ -1103,16 +1119,29 @@ function RequestModal(props) {
                                             <textarea className="form-control"
                                                 name="detail"
                                                 defaultValue={props.request.data.detail}
-                                                style={{ height: '130px' }}
+                                                style={{ minHeight: '275px' }}
                                                 disabled="disabled"
                                             />
                                         </div>
+
+
                                     </div>
 
 
                                     <div className="form-group col-lg-6">
-                                        <label htmlFor="mapEvent">Position</label>
-                                        <MyMapComponent2 information={props.request} />
+                                        <div className="form-group">
+                                            <label htmlFor="mapEvent">Position</label>
+                                            <MyMapComponent2 information={props.request} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="location">Location</label>
+                                            <textarea className="form-control"
+                                                name="location"
+                                                defaultValue={props.request.data.location}
+                                                style={{ minHeight: '100px' }}
+                                                disabled="disabled"
+                                            />
+                                        </div>
                                     </div>
 
                                 </div>

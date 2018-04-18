@@ -301,6 +301,8 @@ class Information extends Component {
                                                             value={this.state.detail}
                                                             onChange={(e) => this._handleInputChange(e)}
                                                             disabled={(this.state.disabled) ? "disabled" : ""}
+                                                            style={{ minHeight: '105px' }}
+
                                                             required
                                                         />
                                                     </div>
@@ -469,8 +471,8 @@ function InfoModal(props) {
                                                 <textarea className="form-control"
                                                     type="text"
                                                     name="detail"
-                                                    style={{ height: '100px' }}
                                                     defaultValue={props.info.data.detail}
+                                                    style={{ minHeight: '105px' }}
                                                 // disabled="disabled"
                                                 />
                                             </div>
@@ -482,7 +484,7 @@ function InfoModal(props) {
                                         <InformationsMap2 information={props.info} isMarkerShown />
                                     </div>
 
-                                    <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Position can't edit</div>
+                                    <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Position can't be edited</div>
 
                                 </div>
                             </div>

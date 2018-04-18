@@ -57,12 +57,11 @@ function ReportCards(props) {
 function ReportCard(props) {
     return (
         <div className="card text-right">
-            <div className={props.report.data.status === "done" ? "card-header bg-success text-white" : "card-header bg-warning"}>
+            <div className={props.report.data.status === "done" ? "card-header bg-success text-white topic-overflow" : "card-header bg-warning topic-overflow"}>
                 <i className={props.report.data.status === "done" ? "fa fa-envelope-open" : "fa fa-envelope-o"} /> {props.report.data.title}
             </div>
             <div className="card-body">
-                <p className="card-text">{props.report.data.detail}</p>
-
+                <p className="card-text bero-report-detail">{props.report.data.detail}</p>
                 {props.report.data.status === "done" ?
                     <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
                     : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>

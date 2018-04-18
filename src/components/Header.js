@@ -112,7 +112,7 @@ function NotiBell(props) {
     return (
         <div className="btn-group">
             <button className="btn btn-outline-dark btn-sm dropdown-toggle" data-toggle="dropdown"><i className="fa fa-bell"></i>
-                {reportLength === 0 ? '' : <a>{reportLength}</a>}
+                {reportLength === 0 ? '' : <a className="badge badge-danger text-light">{reportLength}</a>}
             </button>
             <div className="dropdown-menu dropdown-menu-right">
                 <ReportNoti allReport={reports} />
@@ -204,7 +204,13 @@ function ReportModal(props) {
                                 </div> : ''}
                             <br />
                             <div className="col-12 row d-flex align-items-center">
-                                <div className="col-12">Detail: <textarea className="form-control" value={props.report.data.detail} disabled="disabled" /></div>
+                                <div className="col-12">Detail:
+                                <textarea className="form-control"
+                                        value={props.report.data.detail}
+                                        disabled="disabled"
+                                        style={{ minHeight: "200px" }}
+                                    />
+                                </div>
                             </div>
                             <br />
                             {/* <div className="col-12 row d-flex align-items-center">

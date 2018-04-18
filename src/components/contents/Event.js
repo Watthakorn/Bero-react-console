@@ -21,7 +21,7 @@ requestsRef.on('child_added', snap => {
     let request = { id: snap.key, data: snap.val() }
     // this.setState({ users: [user].concat(this.state.users) });
     // console.log(snap.val());
-    if (request.data.type === 'Event') {
+    if (request.data.requestType === 'Event') {
         allEvent.push(request);
     } else {
         allRequest.push(request)
@@ -42,33 +42,21 @@ codesRef.on('child_added', snap => {
         allCode.push([[code.id, code.data.status]]);
     }
 });
-// console.log(allCodeKey);
-// console.log(allCode);
 
 
 
 class Event extends Component {
-    // constructor(props) {
-    //     super(props);
-    //     this.state = {
-    //         image: "no-img.png",
-    //         value: 0
-    //     }
-    //     this.handleChange = this.handleChange.bind(this);
-    // }
-    // handleChange(event) {
-    //     this.setState({ image: event.target.value });
-    // }
     constructor(props) {
         super(props);
         this.state = {
             file: '',
             imagePreviewUrl: 'no-img.png',
             eventName: '',
-            paticipant: 10,
+            participant: 10,
             startDate: todayDate,
             endDate: todayDate,
             detail: '',
+            location: '',
             showModal: true,
             progressBar: '',
             disabled: false,
@@ -80,24 +68,50 @@ class Event extends Component {
     }
 
     componentWillMount() {
-        var allReport = [];
-        var reportsRef = fire.database().ref('reports');
-        reportsRef.on('child_added', snap => {
-            let report = { id: snap.key, data: snap.val() }
-            // this.setState({ users: [user].concat(this.state.users) });
-            // console.log(snap.val());
-            allReport.push(report);
+
+
+        requestsRef.on('child_changed', snap => {
+            let request = { id: snap.key, data: snap.val() }
+            if (request.data.requestType === "Event") {
+                for (let i in allEvent) {
+                    if (allEvent[i].id === request.id) {
+                        allEvent[i].data = request.data;
+                        break;
+                    }
+                }
+                this.props.addEvent(allEvent);
+            } else {
+                for (let i in allRequest) {
+                    if (allRequest[i].id === request.id) {
+                        allRequest[i].data = request.data;
+                        break;
+                    }
+                }
+                this.props.addRequest(allRequest);
+            }
         });
-        var allUser = [];
-        var usersRef = fire.database().ref('users');
-        usersRef.on('child_added', snap => {
-            let user = { id: snap.key, data: snap.val() }
-            // this.setState({ users: [user].concat(this.state.users) });
-            // console.log(snap.val());
-            allUser.push(user);
+        requestsRef.on('child_removed', snap => {
+            let request = { id: snap.key, data: snap.val() }
+            if (request.data.requestType === "Event") {
+                for (let i in allEvent) {
+                    if (allEvent[i].id === request.id) {
+                        allEvent.splice(i, 1)
+                        break;
+                    }
+                }
+                this.props.addEvent(allEvent);
+            } else {
+                for (let i in allRequest) {
+                    if (allRequest[i].id === request.id) {
+                        allRequest.splice(i, 1)
+                        break;
+                    }
+                }
+                this.props.addRequest(allRequest);
+            }
         });
-        this.props.addUsers(allUser);
-        this.props.addReport(allReport);
+
+
 
         this.props.addEvent(allEvent);
         this.props.addRequest(allRequest);
@@ -197,9 +211,10 @@ class Event extends Component {
                 databaseRef.child(newEventKey).set({
                     detail: state.detail,
                     facebookUid: props.user.user.providerData[0].uid,
-                    hero: state.paticipant,
+                    hero: state.participant,
                     heroAccepted: 0,
                     imageUrl: downloadURL,
+                    location: state.location,
                     mark_position: {
                         latitude: markerPosition.lat,
                         longitude: markerPosition.lng
@@ -207,7 +222,7 @@ class Event extends Component {
                     must_be: 'all',
                     ownerName: props.user.user.displayName,
                     ownerprofilePicture: "http://graph.facebook.com/" + props.user.user.providerData[0].uid + "/picture?type=square",
-                    ownerUid: "none",
+                    ownerUid: props.user.user.uid,
                     rated: 0,
                     tag: state.tag,
                     requestType: 'Event',
@@ -216,14 +231,14 @@ class Event extends Component {
                     endDate: state.endDate,
                     status: 'in-progress',
                     topic: state.eventName,
-                    type: 'Event',
+                    type: 'Any',
                     view: 'Pubilc',
                     when: Date.now()
 
 
                 })
 
-                for (let index = 0; index < state.paticipant; index++) {
+                for (let index = 0; index < state.participant; index++) {
                     codeRef.push({
                         event: newEventKey,
                         status: 'not_activate',
@@ -276,7 +291,7 @@ class Event extends Component {
     //         file: '',
     //         imagePreviewUrl: 'no-img.png',
     //         eventName: '',
-    //         paticipant: 10,
+    //         participant: 10,
     //         startDate: '',
     //         endDate: '',
     //         detail: '',
@@ -294,7 +309,7 @@ class Event extends Component {
     //         file: '',
     //         imagePreviewUrl: 'no-img.png',
     //         eventName: '',
-    //         paticipant: 10,
+    //         participant: 10,
     //         startDate: '',
     //         endDate: '',
     //         detail: '',
@@ -370,17 +385,19 @@ class Event extends Component {
             startDate: start,
             endDate: end,
             timeEvent: formatDate,
+            location: e.target.location.value,
         });
 
         e.target.submitBtn.disabled = "disabled";
         e.target.eventName.disabled = "disabled";
         e.target.tag.disabled = "disabled";
         e.target.detail.disabled = "disabled";
+        e.target.location.disabled = "disabled";
         if (e.target.startDate && e.target.endDate) {
             e.target.startDate.disabled = "disabled";
             e.target.endDate.disabled = "disabled";
         }
-        alert("Your changes have been saved\n\nPlease refresh page to see your changes");
+        // alert("Your changes have been saved\n\nPlease refresh page to see your changes");
         // console.log("hey wake up!");
     }
     _copyToClipboard(e) {
@@ -472,7 +489,7 @@ class Event extends Component {
                                     <div className="form-row">
                                         {/* <!-- Form Input --> */}
                                         <div className="form-group col-lg-6">
-                                            {/* eventName & paticipant */}
+                                            {/* eventName & participant */}
                                             <div className="form-row">
                                                 <div className="form-group col-sm-12">
                                                     <label htmlFor="eventName">Event Name</label>
@@ -502,8 +519,8 @@ class Event extends Component {
                                                     <label htmlFor="participant">Participant</label>
                                                     <input type="number"
                                                         className="form-control"
-                                                        name="paticipant"
-                                                        value={this.state.paticipant}
+                                                        name="participant"
+                                                        value={this.state.participant}
                                                         onChange={(e) => this._handleInputChange(e)}
                                                         disabled={(this.state.disabled) ? "disabled" : ""}
                                                         required
@@ -560,11 +577,24 @@ class Event extends Component {
 
                                         {/* <!-- Form map --> */}
                                         <div className="form-group col-lg-6">
-                                            <label htmlFor="mapEvent">Position</label>
-                                            <MyMapComponent isMarkerShown mapProps={this.props} />
+                                            <div className="form-group">
+                                                <label htmlFor="mapEvent">Position</label>
+                                                <MyMapComponent isMarkerShown mapProps={this.props} />
+                                            </div>
+                                            <div className="form-group">
+                                                <label htmlFor="location">Location</label>
+                                                <textarea className="form-control"
+                                                    name="location"
+                                                    value={this.state.location}
+                                                    onChange={(e) => this._handleInputChange(e)}
+                                                    disabled={(this.state.disabled) ? "disabled" : ""}
+                                                    required
+                                                />
+                                            </div>
                                         </div>
 
-                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Image, Participant and Position can't edit please be careful before click 'Create'</div>
+                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*In case of position error</div>
+                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>**Image, Participant and Position can't edit please be careful before click 'Create'</div>
                                         {/* progress bar */}
                                         <div className="progress col-12">
                                             <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: this.state.progressBar }} />
@@ -768,7 +798,7 @@ function EventModal(props) {
                                     <div className="form-row">
                                         {/* <!-- Form Input --> */}
                                         <div className="form-group col-lg-6">
-                                            {/* eventName & paticipant */}
+                                            {/* eventName & participant */}
                                             <div className="form-row">
                                                 <div className="form-group col-sm-12">
                                                     <label htmlFor="eventName">Event Name</label>
@@ -794,7 +824,7 @@ function EventModal(props) {
                                                     <label htmlFor="participant">Participant</label>
                                                     <input type="number"
                                                         className="form-control"
-                                                        name="paticipant"
+                                                        name="participant"
                                                         defaultValue={props.event.data.hero}
                                                         disabled="disabled"
                                                     />
@@ -859,11 +889,22 @@ function EventModal(props) {
 
 
                                         {/* <!-- Form map --> */}
-                                        <div className="form-group col-lg-6">
-                                            <label htmlFor="mapEvent">Position</label>
-                                            <MyMapComponent2 information={props.event} />
+                                        <div className="col-lg-6">
+                                            <div className="form-group">
+                                                <label htmlFor="mapEvent">Position</label>
+                                                <MyMapComponent2 information={props.event} />
+                                            </div>
+                                            <div className="form-group">
+                                                <label htmlFor="location">Location</label>
+                                                <textarea className="form-control"
+                                                    name="location"
+                                                    defaultValue={props.event.data.location}
+                                                // style={{ height: '130px' }}
+                                                // disabled="disabled"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Image, Participant and Position can't edit</div>
+                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Image, Participant and Position can't be edited</div>
 
                                     </div>
                                 </div>
@@ -937,14 +978,63 @@ function RequestModals(props) {
 }
 
 function RequestModal(props) {
-    var paticipantView = [];
+    var participantView = [];
+    // var ownerView = [];
     var helpers = props.request.data.Helpers;
-
+    if (props.request.data.owneruid) {
+        var ownerRef = fire.database().ref('users/' + props.request.data.owneruid);
+        ownerRef.on('value', function (snapshot) {
+            participantView.push(
+                <div key={snapshot.key}>
+                    <div className="row">
+                        <div className="col-3">
+                            <div className="col-12">
+                                <img src={snapshot.val().Profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
+                            </div>
+                        </div>
+                        <div className="col-9 container-fluid d-flex align-content-around flex-wrap justify-content-start">
+                            <div className="col-12">
+                                <p className="font-weight-bold" style={{ "wordWrap": "break-word" }}>{snapshot.val().Profile.displayName} (Owner)</p>
+                            </div>
+                            <div className="col-12 font-weight-light mt-auto">
+                                {snapshot.val().Profile.facebookUid}
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                </div>);
+        });
+    }
     if (helpers) {
-        var paticipants = Object.keys(helpers);
-        for (let index = 0; index < paticipants.length; index++) {
-            let paticipant = paticipants[index];
-            paticipantView.push(<div key={index}>{paticipant}</div>);
+        var participants = Object.keys(helpers);
+        for (let index = 0; index < participants.length; index++) {
+            let participant = participants[index];
+            // console.log(participant)
+            var participantRef = fire.database().ref('users/' + participant);
+            participantRef.on('value', function (snapshot) {
+                // owner = snapshot.val();
+                // console.log(snapshot.key)
+
+                participantView.push(
+                    <div key={snapshot.key + "" + index}>
+                        <div className="row">
+                            <div className="col-3">
+                                <div className="col-12">
+                                    <img src={snapshot.val().Profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
+                                </div>
+                            </div>
+                            <div className="col-9 container-fluid d-flex align-content-around flex-wrap">
+                                <div className="col-12">
+                                    <p style={{ "wordWrap": "break-word" }}>{snapshot.val().Profile.displayName}</p>
+                                </div>
+                                <div className="col-12 font-weight-light mt-auto">
+                                    {snapshot.val().Profile.facebookUid}
+                                </div>
+                            </div>
+                        </div>
+                        <hr />
+                    </div>);
+            });
         }
     }
     return (
@@ -959,11 +1049,13 @@ function RequestModal(props) {
                     </div>
 
                     <div className="modal-body">
-                        {helpers ?
-                            <button type="button" onClick={props.onClick}>{props.page === 1 ? 'View Paticipant' : 'View Detail'}</button>
-                            :
-                            props.page === 1 ? '' :
-                                <button type="button" onClick={props.onClick}>View Detail</button>}
+                        {props.page === 1 ?
+                            <div>
+                                <button type="button" onClick={props.onClick}>View Participant</button>
+                                <hr />
+                            </div>
+                            : <button type="button" onClick={props.onClick}>View Detail</button>
+                        }
                         <br />
                         {props.page === 1
                             ?
@@ -981,7 +1073,7 @@ function RequestModal(props) {
                                 <div className="form-row">
                                     {/* <!-- Form Input --> */}
                                     <div className="form-group col-lg-6">
-                                        {/* eventName & paticipant */}
+                                        {/* eventName & participant */}
                                         <div className="form-row">
                                             <div className="form-group col-sm-8">
                                                 <label htmlFor="eventName">Request Name</label>
@@ -996,7 +1088,7 @@ function RequestModal(props) {
                                                 <label htmlFor="participant">Participant</label>
                                                 <input type="number"
                                                     className="form-control"
-                                                    name="paticipant"
+                                                    name="participant"
                                                     defaultValue={props.request.data.hero}
                                                     disabled="disabled"
                                                 />
@@ -1025,7 +1117,9 @@ function RequestModal(props) {
 
                                 </div>
                             </div>
-                            : <div>{paticipantView}</div>
+                            : <div>
+                                <hr /> {participantView}
+                            </div>
                         }
 
                     </div>
@@ -1079,8 +1173,13 @@ const MyMapComponent2 = compose(
             onClick={props.onToggleOpen}
         >
             {props.isOpen && <InfoWindow onCloseClick={props.onToggleOpen}>
-                <div>
-                    {props.information.data.topic}
+                <div style={{ maxWidth: "175px" }}>
+                    <div className="font-weight-bold">
+                        {props.information.data.topic}
+                    </div>
+                    <div>
+                        {props.information.data.location}
+                    </div>
                 </div>
             </InfoWindow>}
         </Marker>
@@ -1188,22 +1287,6 @@ const mapDispatchToProps = (dispatch) => {
                 type: "REQUESTS_FETCH",
                 payload: requests
             })
-        },
-        addReport: (reports) => {
-            if (reports) {
-                dispatch({
-                    type: "REPORTS_FETCH",
-                    payload: reports
-                })
-            }
-        },
-        addUsers: (users) => {
-            if (users) {
-                dispatch({
-                    type: "USERS_PROFILE_FETCH",
-                    payload: users
-                })
-            }
         }
     }
 }

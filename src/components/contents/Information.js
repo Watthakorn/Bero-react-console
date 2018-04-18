@@ -40,34 +40,27 @@ class Information extends Component {
     }
 
     componentWillMount() {
-        var allReport = [];
-        var reportsRef = fire.database().ref('reports');
-        reportsRef.on('child_added', snap => {
-            let report = { id: snap.key, data: snap.val() }
-            // this.setState({ users: [user].concat(this.state.users) });
-            // console.log(snap.val());
-            allReport.push(report);
-        });
-        var allUser = [];
-        var usersRef = fire.database().ref('users');
-        usersRef.on('child_added', snap => {
-            let user = { id: snap.key, data: snap.val() }
-            // this.setState({ users: [user].concat(this.state.users) });
-            // console.log(snap.val());
-            allUser.push(user);
-        });
 
-
-        // var allInfo = [];
-        // var infoRef = fire.database().ref('informations');
-        // infoRef.on('child_added', snap => {
-        //     let info = { id: snap.key, data: snap.val() }
-        //     // this.setState({ users: [user].concat(this.state.users) });
-        //     // console.log(snap.val());
-        //     allInfo.push(info);
-        // });
-        this.props.addUsers(allUser);
-        this.props.addReport(allReport);
+        infoRef.on('child_changed', snap => {
+            let info = { id: snap.key, data: snap.val() }
+            for (let i in allInfo) {
+                if (allInfo[i].id === info.id) {
+                    allInfo[i].data = info.data;
+                    break;
+                }
+            }
+            this.props.addInformations(allInfo);
+        });
+        infoRef.on('child_removed', snap => {
+            let remove = snap.key;
+            for (let i in allInfo) {
+                if (allInfo[i].id === remove) {
+                    allInfo.splice(i, 1)
+                    break;
+                }
+            }
+            this.props.addInformations(allInfo);
+        });
 
         this.props.addInformations(allInfo);
         // console.log(this.props);
@@ -175,7 +168,7 @@ class Information extends Component {
         e.target.detail.disabled = "disabled";
         e.target.contact.disabled = "disabled";
         e.target.location.disabled = "disabled";
-        alert("Your changes have been saved\n\nPlease refresh page to see your changes");
+        // alert("Your changes have been saved\n\nPlease refresh page to see your changes");
         // console.log("hey wake up!");
     }
 
@@ -620,7 +613,7 @@ function InformationMarker(props) {
 
                     {props.isOpen &&
                         <InfoWindow onCloseClick={props.onToggleOpen}>
-                            <div>
+                            <div style={{ maxWidth: "175px" }}>
                                 <div className="font-weight-bold">
                                     {index + 1}: {information.data.title}
                                 </div>
@@ -657,18 +650,24 @@ const InformationsMap2 = compose(
     withGoogleMap
 )((props) =>
     <GoogleMap
-        defaultZoom={10}
+        defaultZoom={12}
         defaultCenter={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
     >
         <Marker
             position={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
             onClick={props.onToggleOpen}
         >
-            {props.isOpen && <InfoWindow onCloseClick={props.onToggleOpen}>
-                <div>
-                    {props.information.data.title}
-                </div>
-            </InfoWindow>}
+            {props.isOpen &&
+                <InfoWindow onCloseClick={props.onToggleOpen}>
+                    <div style={{ maxWidth: "175px" }}>
+                        <div className="font-weight-bold">
+                            {props.information.data.title}
+                        </div>
+                        <div>
+                            {props.information.data.location}
+                        </div>
+                    </div>
+                </InfoWindow>}
         </Marker>
 
     </GoogleMap>
@@ -710,22 +709,6 @@ const mapDispatchToProps = (dispatch) => {
                 dispatch({
                     type: "INFORMATIONS_FETCH",
                     payload: informations
-                })
-            }
-        },
-        addReport: (reports) => {
-            if (reports) {
-                dispatch({
-                    type: "REPORTS_FETCH",
-                    payload: reports
-                })
-            }
-        },
-        addUsers: (users) => {
-            if (users) {
-                dispatch({
-                    type: "USERS_PROFILE_FETCH",
-                    payload: users
                 })
             }
         }

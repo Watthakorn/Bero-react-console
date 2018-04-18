@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import fire from "../fire"
 import { connect } from "react-redux";
 
+// var allReportKey = []
 var allReport = [];
 var reportsRef = fire.database().ref('reports');
 reportsRef.on('child_added', snap => {
     let report = { id: snap.key, data: snap.val() }
     // this.setState({ users: [user].concat(this.state.users) });
     // console.log(snap.val());
+    // allReportKey.push(report.id)
     allReport.push(report);
 });
 var allUser = [];
@@ -24,8 +26,30 @@ class Header extends Component {
 
     componentWillMount() {
 
-        this.props.addUsers(allUser);
+        reportsRef.on('child_changed', snap => {
+            let report = { id: snap.key, data: snap.val() }
+            for (let i in allReport) {
+                if (allReport[i].id === report.id) {
+                    allReport[i].data = report.data;
+                    break;
+                }
+            }
+            this.props.addReport(allReport);
+        });
+        reportsRef.on('child_removed', snap => {
+            let remove = snap.key;
+            for (let i in allReport) {
+                if (allReport[i].id === remove) {
+                    allReport.splice(i, 1)
+                    break;
+                }
+            }
+            this.props.addReport(allReport);
+        });
+
+
         this.props.addReport(allReport);
+        this.props.addUsers(allUser);
 
     }
 
@@ -127,9 +151,25 @@ function ReportModals(props) {
         }
     }
     return reportmodals;
-
 }
+
 function ReportModal(props) {
+    var target = [];
+    var owner = [];
+    if (props.report.data.owner) {
+        var ownerRef = fire.database().ref('users/' + props.report.data.owner);
+        ownerRef.on('value', function (snapshot) {
+            owner = snapshot.val();
+        });
+    }
+    if (props.report.data.target) {
+        var targetRef = fire.database().ref('users/' + props.report.data.target);
+        targetRef.on('value', function (snapshot) {
+            target = snapshot.val();
+        });
+
+    }
+    // console.log(target)
     return (
         <div className="modal fade" id={props.target} role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -148,19 +188,23 @@ function ReportModal(props) {
                         <br /> */}
                             <div className="col-12 row d-flex align-items-center">
                                 <div className="col-6">Title: <input className="form-control" value={props.report.data.title} disabled="disabled" /></div>
-                                <div className="col-6">Owner: <input className="form-control" value={props.report.data.owner} disabled="disabled" /></div>
+                                {owner.Profile ?
+                                    <div className="col-6">
+                                        Owner: <input className="form-control" value={owner.Profile.displayName} disabled="disabled" />
+                                    </div>
+                                    : ''}
                             </div>
-                            {props.report.data.target &&
+                            {target.Profile ?
                                 <div>
                                     <br />
                                     <div className="col-12 row d-flex align-items-center">
                                         <div className="col-6"></div>
-                                        <div className="col-6">Target: <input className="form-control" value={props.report.data.target} disabled="disabled" /></div>
+                                        <div className="col-6">Target: <input className="form-control" value={target.Profile.displayName} disabled="disabled" /></div>
                                     </div>
-                                </div>}
+                                </div> : ''}
                             <br />
                             <div className="col-12 row d-flex align-items-center">
-                                <div className="col-12">Detail: <textarea className="form-control" value={props.report.data.title} disabled="disabled" /></div>
+                                <div className="col-12">Detail: <textarea className="form-control" value={props.report.data.detail} disabled="disabled" /></div>
                             </div>
                             <br />
                             {/* <div className="col-12 row d-flex align-items-center">

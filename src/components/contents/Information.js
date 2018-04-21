@@ -35,7 +35,9 @@ class Information extends Component {
             progressBar: '',
             location: '',
             disabled: false,
-            showCreate: true
+            showCreate: true,
+            changeMarker: '',
+            currentId: ''
         };
     }
 
@@ -154,13 +156,28 @@ class Information extends Component {
         e.preventDefault();
         // var userId = e.target.value;
         // console.log(e.target.id);
-        fire.database().ref('informations/' + e.target.id).update({
-            title: e.target.infoName.value,
-            type: e.target.infoType.value,
-            detail: e.target.detail.value,
-            contact: e.target.contact.value,
-            location: e.target.location.value,
-        });
+        if (e.target.id === this.state.currentId) {
+            fire.database().ref('informations/' + e.target.id).update({
+                title: e.target.infoName.value,
+                type: e.target.infoType.value,
+                detail: e.target.detail.value,
+                contact: e.target.contact.value,
+                location: e.target.location.value,
+                mark_position: {
+                    latitude: this.state.changeMarker.lat,
+                    longitude: this.state.changeMarker.lng
+                },
+            });
+
+        } else {
+            fire.database().ref('informations/' + e.target.id).update({
+                title: e.target.infoName.value,
+                type: e.target.infoType.value,
+                detail: e.target.detail.value,
+                contact: e.target.contact.value,
+                location: e.target.location.value,
+            });
+        }
 
         e.target.submitBtn.disabled = "disabled";
         e.target.infoName.disabled = "disabled";
@@ -217,7 +234,7 @@ class Information extends Component {
                             </table>
                         </div>
 
-                        <InfoModals informations={allInfo} onSubmit={(e) => this._handleSaveChange(e)} />
+                        <InfoModals informations={allInfo} infostate={this} onSubmit={(e) => this._handleSaveChange(e)} />
 
                         <div className="modal fade" id="createInfoModal" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
                             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -321,7 +338,6 @@ class Information extends Component {
 
 
                                                 {/* progress bar */}
-                                                <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>**Position can't edit please be careful before click 'Create'</div>
 
                                                 <div className="progress col-12">
                                                     <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: this.state.progressBar }} />
@@ -389,7 +405,7 @@ function InfoModals(props) {
     if (allInfo) {
         for (let index = 0; index < allInfo.length; index++) {
             let info = allInfo[index];
-            infomodals.push(<InfoModal key={info.id} infoNo={index + 1} info={info} target={info.id} onSubmit={props.onSubmit} />);
+            infomodals.push(<InfoModal key={info.id} infostate={props.infostate} infoNo={index + 1} info={info} target={info.id} onSubmit={props.onSubmit} />);
         }
     }
     return infomodals;
@@ -481,10 +497,10 @@ function InfoModal(props) {
 
                                     <div className="form-group col-lg-6">
                                         <label htmlFor="mapEvent">Position</label>
-                                        <InformationsMap2 information={props.info} isMarkerShown />
+                                        <InformationsMap2 infostate={props.infostate} information={props.info} isMarkerShown />
                                     </div>
 
-                                    <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Position can't be edited</div>
+                                    <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Marker C is old position</div>
 
                                 </div>
                             </div>
@@ -641,13 +657,45 @@ const InformationsMap2 = compose(
         containerElement: <div style={{ height: `300px` }} />,
         mapElement: <div style={{ height: `100%`, width: '100%' }} />,
     }),
+
+    lifecycle({
+        componentWillMount() {
+            const refs = {}
+
+            this.setState({
+
+                onMarkerMounted: ref => {
+                    refs.marker = ref;
+                },
+
+                onPositionChanged: () => {
+                    const position = refs.marker.getPosition();
+                    const infostate = refs.marker.props.infostate;
+                    // console.log(refs.marker.props.information.id);
+                    // console.log(position.lat())
+                    // console.log(refs.marker.props.infostate)
+                    infostate.setState({
+                        currentId: refs.marker.props.information.id,
+                        changeMarker: {
+                            lat: position.lat(),
+                            lng: position.lng()
+                        }
+                    })
+                    // console.log(infostate.state)
+                }
+            })
+
+        },
+    }),
     withStateHandlers(() => ({
         isOpen: true,
     }), {
             onToggleOpen: ({ isOpen }) => () => ({
                 isOpen: !isOpen,
             })
-        }),
+        }
+    ),
+
     withScriptjs,
     withGoogleMap
 )((props) =>
@@ -655,9 +703,17 @@ const InformationsMap2 = compose(
         defaultZoom={12}
         defaultCenter={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
     >
+
         <Marker
             position={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
-            onClick={props.onToggleOpen}
+            label="C"
+        >
+        </Marker>
+
+        <Marker
+            position={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
+            information={props.information} infostate={props.infostate}
+            onClick={props.onToggleOpen} draggable={true} ref={props.onMarkerMounted} onPositionChanged={props.onPositionChanged}
         >
             {props.isOpen &&
                 <InfoWindow onCloseClick={props.onToggleOpen}>

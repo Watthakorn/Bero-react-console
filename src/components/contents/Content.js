@@ -4,6 +4,8 @@ import Report from './Report';
 import Informaiton from './Information';
 import User from './User';
 import Event from './Event';
+import Request from './Request';
+
 import { Switch, Route, Redirect } from 'react-router-dom';
 import fire, { auth } from "../../fire";
 import { connect } from "react-redux"
@@ -20,6 +22,7 @@ class Content extends Component {
                     <PrivateRoute path='/information' component={Informaiton} />
                     <PrivateRoute path='/user' component={User} />
                     <PrivateRoute path='/event' component={Event} />
+                    <PrivateRoute path='/request' component={Request} />
                 </Switch>
 
             </div>

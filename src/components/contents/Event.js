@@ -15,7 +15,7 @@ var today = new Date();
 var todayDate = today.getFullYear() + '-' + ((today.getMonth() + 1) < 10 ? '0' + (today.getMonth() + 1) : today.getMonth() + 1) + '-' + today.getDate();
 
 var allEvent = [];
-var allRequest = [];
+// var allRequest = [];
 var requestsRef = fire.database().ref('requests');
 requestsRef.on('child_added', snap => {
     let request = { id: snap.key, data: snap.val() }
@@ -24,7 +24,7 @@ requestsRef.on('child_added', snap => {
     if (request.data.requestType === 'Event') {
         allEvent.push(request);
     } else {
-        allRequest.push(request)
+        // allRequest.push(request)
     }
 });
 
@@ -63,7 +63,9 @@ class Event extends Component {
             showCreate: true,
             tag: '',
             page: 1,
-            pageEvent: 1
+            pageEvent: 1,
+            changeMarker: '',
+            currentId: ''
         };
     }
 
@@ -81,13 +83,13 @@ class Event extends Component {
                 }
                 this.props.addEvent(allEvent);
             } else {
-                for (let i in allRequest) {
-                    if (allRequest[i].id === request.id) {
-                        allRequest[i].data = request.data;
-                        break;
-                    }
-                }
-                this.props.addRequest(allRequest);
+                // for (let i in allRequest) {
+                //     if (allRequest[i].id === request.id) {
+                //         allRequest[i].data = request.data;
+                //         break;
+                //     }
+                // }
+                // this.props.addRequest(allRequest);
             }
         });
         requestsRef.on('child_removed', snap => {
@@ -101,20 +103,20 @@ class Event extends Component {
                 }
                 this.props.addEvent(allEvent);
             } else {
-                for (let i in allRequest) {
-                    if (allRequest[i].id === request.id) {
-                        allRequest.splice(i, 1)
-                        break;
-                    }
-                }
-                this.props.addRequest(allRequest);
+                // for (let i in allRequest) {
+                //     if (allRequest[i].id === request.id) {
+                //         allRequest.splice(i, 1)
+                //         break;
+                //     }
+                // }
+                // this.props.addRequest(allRequest);
             }
         });
 
 
 
         this.props.addEvent(allEvent);
-        this.props.addRequest(allRequest);
+        // this.props.addRequest(allRequest);
 
         // console.log(this.props.events.events);
 
@@ -377,16 +379,32 @@ class Event extends Component {
         } else {
             formatDate = e.target.timeDate.value;
         }
-
-        fire.database().ref('requests/' + e.target.id).update({
-            topic: e.target.eventName.value,
-            tag: e.target.tag.value,
-            detail: e.target.detail.value,
-            startDate: start,
-            endDate: end,
-            timeEvent: formatDate,
-            location: e.target.location.value,
-        });
+        if (e.target.id === this.state.currentId) {
+            fire.database().ref('requests/' + e.target.id).update({
+                topic: e.target.eventName.value,
+                tag: e.target.tag.value,
+                detail: e.target.detail.value,
+                startDate: start,
+                endDate: end,
+                timeEvent: formatDate,
+                location: e.target.location.value,
+                mark_position: {
+                    latitude: this.state.changeMarker.lat,
+                    longitude: this.state.changeMarker.lng
+                },
+            });
+        }
+        else {
+            fire.database().ref('requests/' + e.target.id).update({
+                topic: e.target.eventName.value,
+                tag: e.target.tag.value,
+                detail: e.target.detail.value,
+                startDate: start,
+                endDate: end,
+                timeEvent: formatDate,
+                location: e.target.location.value,
+            });
+        }
 
         e.target.submitBtn.disabled = "disabled";
         e.target.eventName.disabled = "disabled";
@@ -400,6 +418,7 @@ class Event extends Component {
         // alert("Your changes have been saved\n\nPlease refresh page to see your changes");
         // console.log("hey wake up!");
     }
+
     _copyToClipboard(e) {
         e.preventDefault();
         var textField = document.createElement('textarea');
@@ -435,14 +454,9 @@ class Event extends Component {
                 {/* card */}
 
                 {/* {JSON.stringify(allCode[0])} */}
-                <button onClick={(e) => this._handleChangePageEvent(e)}>{this.state.pageEvent === 1 ? 'View Request' : 'View Event'}</button>
                 <div className="card-columns event-card">
 
-                    {this.state.pageEvent === 1
-                        ? <EventCards events={allEvent} />
-
-                        : <RequestCards requests={allRequest} />
-                    }
+                    <EventCards events={allEvent} />
                 </div>
 
 
@@ -596,7 +610,7 @@ class Event extends Component {
                                         </div>
 
                                         <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*In case of position error</div>
-                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>**Image, Participant and Position can't edit please be careful before click 'Create'</div>
+                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>**Image and Participant can't be edit please be careful before click 'Create'</div>
                                         {/* progress bar */}
                                         <div className="progress col-12">
                                             <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: this.state.progressBar }} />
@@ -632,12 +646,11 @@ class Event extends Component {
                     </div>
                 </div>
 
-                <EventModals events={allEvent} page={this.state.page}
+                <EventModals events={allEvent} page={this.state.page} infostate={this}
                     onSubmit={(e) => this._handleSaveChange(e)}
                     onPageClick={(e) => this._handleChangePage(e)}
                     onPageClick2={(e) => this._handleChangePage2(e)}
                     onClickCopy={(e) => this._copyToClipboard(e)} />
-                <RequestModals requests={allRequest} page={this.state.page} onPageClick={(e) => this._handleChangePage(e)} />
             </div>
         );
     }
@@ -688,7 +701,7 @@ function EventModals(props) {
     for (let index = 0; index < allEvent.length; index++) {
         let event = allEvent[index];
         eventmodals.push(<EventModal key={event.id} event={event} page={props.page} onSubmit={props.onSubmit}
-            eventNo={index + 1} target={event.id}
+            eventNo={index + 1} target={event.id} infostate={props.infostate}
             onClick={props.onPageClick} onClick2={props.onPageClick2} onCopy={props.onClickCopy} />);
     }
     return eventmodals;
@@ -700,7 +713,6 @@ function EventModal(props) {
     if (codes) {
         for (let index = 0; index < codes.length; index++) {
             let code = codes[index];
-            codeString += ' ' + code[0] + ' ';
             codeView.push(
                 <div key={code[0]}>
                     <div className="row">
@@ -713,6 +725,7 @@ function EventModal(props) {
                     </div>
                     <hr />
                 </div>);
+            codeString += code[0] + ' ';
             // console.log(codeString)
         }
     }
@@ -896,7 +909,7 @@ function EventModal(props) {
                                         <div className="col-lg-6">
                                             <div className="form-group">
                                                 <label htmlFor="mapEvent">Position</label>
-                                                <MyMapComponent2 information={props.event} />
+                                                <MyMapComponent2 infostate={props.infostate} information={props.event} />
                                             </div>
                                             <div className="form-group">
                                                 <label htmlFor="location">Location</label>
@@ -908,7 +921,8 @@ function EventModal(props) {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Image, Participant and Position can't be edited</div>
+                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*Image and Participant can't be edited</div>
+
 
                                     </div>
                                 </div>
@@ -934,254 +948,41 @@ function EventModal(props) {
 }
 
 
-function RequestCards(props) {
-
-    var eventcards = [];
-    var allRequest = props.requests;
-    // console.log(allEvent)
-
-    allRequest.sort(function (a, b) { return (b.data.when - a.data.when) });
-
-    for (let index = 0; index < allRequest.length; index++) {
-        let request = allRequest[index];
-        eventcards.push(<RequestCard key={request.id} request={request} requestNo={index + 1} target={"#" + request.id} />);
-    }
-    return eventcards;
-}
-
-function RequestCard(props) {
-    return (
-        <div className="card text-right">
-            <div className="bero-eventpic">
-                <img className="card-img-top" src={props.request.data.imageUrl} alt="Card image" />
-            </div>
-            <div className="card-body">
-                <h5 className="card-title">Request: {props.requestNo}</h5>
-                <p className="card-text topic-overflow">{props.request.data.topic}</p>
-                {props.request.data.status === "done" ?
-                    <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
-                    : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>
-                }
-            </div>
-        </div>
-    );
-
-}
-
-function RequestModals(props) {
-    var requestmodals = [];
-
-    var allRequest = props.requests;
-    // console.log(allEvent)
-    // console.log(props.events)
-
-    for (let index = 0; index < allRequest.length; index++) {
-        let request = allRequest[index];
-        requestmodals.push(<RequestModal key={request.id} request={request} requestNo={index + 1} target={request.id} onClick={props.onPageClick} page={props.page} />);
-    }
-    return requestmodals;
-
-}
-
-function RequestModal(props) {
-    var participantView = [];
-    // var ownerView = [];
-    var helpers = props.request.data.Helpers;
-    if (props.request.data.owneruid) {
-        var ownerRef = fire.database().ref('users/' + props.request.data.owneruid);
-        ownerRef.on('value', function (snapshot) {
-            participantView.push(
-                <div key={snapshot.key}>
-                    <div className="row">
-                        <div className="col-3">
-                            <div className="col-12">
-                                <img src={snapshot.val().Profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
-                            </div>
-                        </div>
-                        <div className="col-9 container-fluid d-flex align-content-around flex-wrap justify-content-start">
-                            <div className="col-12">
-                                <p className="font-weight-bold" style={{ "wordWrap": "break-word" }}>{snapshot.val().Profile.displayName} (Owner)</p>
-                            </div>
-                            <div className="col-12 font-weight-light mt-auto">
-                                {snapshot.val().Profile.facebookUid}
-                            </div>
-                        </div>
-                    </div>
-                    <hr />
-                </div>);
-        });
-    }
-    if (helpers) {
-        var participants = Object.keys(helpers);
-        for (let index = 0; index < participants.length; index++) {
-            let participant = participants[index];
-            // console.log(participant)
-            var participantRef = fire.database().ref('users/' + participant);
-            participantRef.on('value', function (snapshot) {
-                // owner = snapshot.val();
-                // console.log(snapshot.key)
-
-                participantView.push(
-                    <div key={snapshot.key + "" + index}>
-                        <div className="row">
-                            <div className="col-3">
-                                <div className="col-12">
-                                    <img src={snapshot.val().Profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
-                                </div>
-                            </div>
-                            <div className="col-9 container-fluid d-flex align-content-around flex-wrap">
-                                <div className="col-12">
-                                    <p style={{ "wordWrap": "break-word" }}>{snapshot.val().Profile.displayName}</p>
-                                </div>
-                                <div className="col-12 font-weight-light mt-auto">
-                                    {snapshot.val().Profile.facebookUid}
-                                </div>
-                            </div>
-                        </div>
-                        <hr />
-                    </div>);
-            });
-        }
-    }
-    return (
-        <div className="modal fade" id={props.target} role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-            <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <h5 className="modal-title" id="exampleModalLongTitle">Request: {props.requestNo}</h5>
-                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-
-                    <div className="modal-body">
-                        {props.page === 1 ?
-                            <div>
-                                <button type="button" onClick={props.onClick}>View Participant</button>
-                                <hr />
-                            </div>
-                            : <button type="button" onClick={props.onClick}>View Detail</button>
-                        }
-                        <br />
-                        {props.page === 1
-                            ?
-                            <div>
-                                <div className="form-row">
-                                    <div className="form-group col-12">
-                                        <img id="img-upload"
-                                            src={props.request.data.imageUrl}
-                                            className="mx-auto d-block"
-                                            alt="Image"
-                                        // style={{ maxHeight: '300px' }}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="form-row">
-                                    {/* <!-- Form Input --> */}
-                                    <div className="form-group col-lg-6">
-                                        {/* eventName & participant */}
-                                        <div className="form-row">
-                                            <div className="form-group col-sm-8">
-                                                <label htmlFor="eventName">Request Name</label>
-                                                <input type="text"
-                                                    className="form-control"
-                                                    name="eventName"
-                                                    defaultValue={props.request.data.topic}
-                                                    disabled="disabled"
-                                                />
-                                            </div>
-                                            <div className="form-group col-sm-4">
-                                                <label htmlFor="participant">Participant</label>
-                                                <input type="number"
-                                                    className="form-control"
-                                                    name="participant"
-                                                    defaultValue={props.request.data.hero}
-                                                    disabled="disabled"
-                                                />
-                                            </div>
-                                        </div>
-
-
-                                        <div className="form-group">
-                                            <label htmlFor="timeRequest">RequestTime</label>
-                                            <input type="text"
-                                                className="form-control"
-                                                name="participant"
-                                                defaultValue={(new Date(props.request.data.when)).toString()}
-                                                disabled="disabled"
-                                            />
-                                        </div>
-
-
-                                        {/* detail */}
-                                        <div className="form-group">
-                                            <label htmlFor="detail">Detail</label>
-                                            <textarea className="form-control"
-                                                name="detail"
-                                                defaultValue={props.request.data.detail}
-                                                style={{ minHeight: '275px' }}
-                                                disabled="disabled"
-                                            />
-                                        </div>
-
-
-                                    </div>
-
-
-                                    <div className="form-group col-lg-6">
-                                        <div className="form-group">
-                                            <label htmlFor="mapEvent">Position</label>
-                                            <MyMapComponent2 information={props.request} />
-                                        </div>
-                                        <div className="form-group">
-                                            <label htmlFor="location">Location</label>
-                                            <textarea className="form-control"
-                                                name="location"
-                                                defaultValue={props.request.data.location}
-                                                style={{ minHeight: '100px' }}
-                                                disabled="disabled"
-                                            />
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                            : <div>
-                                <hr /> {participantView}
-                            </div>
-                        }
-
-                    </div>
-
-
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-
-}
-
-
-
-// function testA() {
-//     console.log("This form testA");
-// }
-
-
-
-
-
-
-
 const MyMapComponent2 = compose(
     withProps({
         googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyCTYHNPsOIlGpD30J91XzKH-NDzqpUA71M&v=3.exp&libraries=geometry,drawing,places",
         loadingElement: <div style={{ height: `100%` }} />,
         containerElement: <div style={{ height: `300px` }} />,
         mapElement: <div style={{ height: `100%`, width: '100%' }} />,
+    }),
+    lifecycle({
+        componentWillMount() {
+            const refs = {}
+
+            this.setState({
+
+                onMarkerMounted: ref => {
+                    refs.marker = ref;
+                },
+
+                onPositionChanged: () => {
+                    const position = refs.marker.getPosition();
+                    const infostate = refs.marker.props.infostate;
+                    // console.log(refs.marker.props.information.id);
+                    // console.log(position.lat())
+                    // console.log(refs.marker.props.infostate)
+                    infostate.setState({
+                        currentId: refs.marker.props.information.id,
+                        changeMarker: {
+                            lat: position.lat(),
+                            lng: position.lng()
+                        }
+                    })
+                    // console.log(infostate.state)
+                }
+            })
+
+        },
     }),
     withStateHandlers(() => ({
         isOpen: true,
@@ -1199,7 +1000,13 @@ const MyMapComponent2 = compose(
     >
         <Marker
             position={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
-            onClick={props.onToggleOpen}
+            label="C"
+        >
+        </Marker>
+        <Marker
+            position={{ lat: props.information.data.mark_position.latitude, lng: props.information.data.mark_position.longitude }}
+            onClick={props.onToggleOpen} information={props.information} infostate={props.infostate}
+            draggable={true} ref={props.onMarkerMounted} onPositionChanged={props.onPositionChanged}
         >
             {props.isOpen && <InfoWindow onCloseClick={props.onToggleOpen}>
                 <div style={{ maxWidth: "175px" }}>

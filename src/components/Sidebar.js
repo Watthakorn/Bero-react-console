@@ -113,6 +113,9 @@ class Sidebar extends Component {
                                 <li className="nav-item btn-light">
                                     <Link className="nav-link" to="/event"><i className="fa fa-gears"></i> Manage</Link>
                                 </li>
+                                <li className="nav-item btn-light">
+                                    <Link className="nav-link" to="/request"><i className="fa fa-child"></i> Request</Link>
+                                </li>
                             </ul>
                         </div>
                         : '' : ''

@@ -429,7 +429,7 @@ class Event extends Component {
         if (e.target.value) {
             alert("Copied code: " + "success!");
         } else {
-            alert("Copied code: " + "fail! please try again");
+            alert("Copied code: " + "fail! no code seleted");
 
         }
         textField.remove();
@@ -744,7 +744,10 @@ function EventModals(props) {
 }
 function EventModal(props) {
     var codeView = [];
-    var codeString = [];
+    var codeString = '';
+    var codeAll = [];
+    var codeActivate = [];
+    var codeNotactivate = [];
     var codes = allCode[allCodeKey.indexOf(props.event.id)];
     if (codes) {
         for (let index = 0; index < codes.length; index++) {
@@ -753,15 +756,27 @@ function EventModal(props) {
                 <div key={code[0]}>
                     <div className="row">
                         <div className="col-6">
-                            {code[0]}
+                            <button className="btn" type="submit" onClick={props.onCopy} value={code[0]}>
+                                {code[0]}
+                            </button>
                         </div>
                         <div className="col-6">
-                            {code[1] === "not_activate" ? <p className="text-danger">Not Activate</p> : <p className="text-success">Activated</p>}
+                            {code[1] === "not_activate" ?
+                                <p className="text-danger">Not Activate</p>
+                                :
+                                <p className="text-success">Activated</p>
+                            }
                         </div>
                     </div>
                     <hr />
                 </div>);
-            codeString.push(code[0]);
+            codeString += code[0] + " ";
+            codeAll.push(code[0]);
+            if (code[1] === "not_activate") {
+                codeNotactivate.push(code[0]);
+            } else {
+                codeActivate.push(code[0]);
+            }
             // console.log(codeString)
         }
     }
@@ -829,9 +844,21 @@ function EventModal(props) {
                             }
                             {props.page === 1 ?
                                 '' : props.page === 2 && codes ?
-                                    <div>
-                                        <button style={{ marginRight: "10px" }} type="button" onClick={props.onClick}>View Detail</button>
-                                        <button className="btn" type="submit" onClick={props.onCopy} value={codeString}> <i className="fa fa-copy" /></button>
+                                    <div className="form-row">
+                                        <div className="col-4">
+                                            <button style={{ marginRight: "10px" }} type="button" onClick={props.onClick}>View Detail</button>
+                                            All Code : {codeAll.length}
+                                            <button className="btn fa fa-copy" type="submit" onClick={props.onCopy} value={codeString} />
+                                        </div>
+                                        <div className="text-danger col-4">
+                                            Not Activate : {codeNotactivate.length}
+                                            <button className="btn fa fa-copy" type="submit" onClick={props.onCopy} value={codeNotactivate} />
+                                        </div>
+                                        <div className="text-success col-4">
+                                            Activated : {codeActivate.length}
+                                            <button className="btn fa fa-copy" type="submit" onClick={props.onCopy} value={codeActivate} />
+                                        </div>
+
                                     </div>
                                     : <button type="button" onClick={props.onClick}>View Detail</button>
                             }

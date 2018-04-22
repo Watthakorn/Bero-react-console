@@ -375,14 +375,23 @@ class Event extends Component {
         var end = '';
         if (e.target.startDate && e.target.endDate) {
             var startDate = new Date(e.target.startDate.value);
-            var endDate = new Date(e.target.endDate.value);
+            var endDate;
+            if (e.target.startDate.value > e.target.endDate.value) {
+                endDate = startDate
+            } else {
+                endDate = new Date(e.target.endDate.value);
+            }
 
             var formatStartDate = startDate.getDate() + '/' + (startDate.getMonth() + 1) + '/' + startDate.getFullYear();
             var formatEndDate = endDate.getDate() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getFullYear();
 
             formatDate = formatStartDate + '-' + formatEndDate;
             start = e.target.startDate.value;
-            end = e.target.endDate.value;
+            if (e.target.startDate.value > e.target.endDate.value) {
+                end = e.target.startDate.value;
+            } else {
+                end = e.target.endDate.value;
+            }
         } else {
             formatDate = e.target.timeDate.value;
         }

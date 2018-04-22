@@ -28,6 +28,8 @@ requestsRef.on('child_added', snap => {
     }
 });
 
+
+
 var allCodeKey = [];
 var allCode = [];
 var codesRef = fire.database().ref('codes');
@@ -42,6 +44,7 @@ codesRef.on('child_added', snap => {
         allCode.push([[code.id, code.data.status]]);
     }
 });
+
 
 
 
@@ -62,6 +65,7 @@ class Event extends Component {
             disabled: false,
             showCreate: true,
             tag: '',
+            shortName: '',
             page: 1,
             pageEvent: 1,
             changeMarker: '',
@@ -70,7 +74,6 @@ class Event extends Component {
     }
 
     componentWillMount() {
-
 
         requestsRef.on('child_changed', snap => {
             let request = { id: snap.key, data: snap.val() }
@@ -241,10 +244,7 @@ class Event extends Component {
                 })
 
                 for (let index = 0; index < state.participant; index++) {
-                    codeRef.push({
-                        event: newEventKey,
-                        status: 'not_activate',
-                    })
+                    createCode({ code: state.shortName, newEventKey: newEventKey })
                 }
 
                 geoFire.set(newEventKey, [markerPosition.lat, markerPosition.lng])
@@ -505,7 +505,7 @@ class Event extends Component {
                                         <div className="form-group col-lg-6">
                                             {/* eventName & participant */}
                                             <div className="form-row">
-                                                <div className="form-group col-sm-12">
+                                                <div className="form-group col-sm-8">
                                                     <label htmlFor="eventName">Event Name</label>
                                                     <input type="text"
                                                         className="form-control"
@@ -514,6 +514,18 @@ class Event extends Component {
                                                         onChange={(e) => this._handleInputChange(e)}
                                                         disabled={(this.state.disabled) ? "disabled" : ""}
                                                         required
+                                                    />
+                                                </div>
+                                                <div className="form-group col-sm-4">
+                                                    <label htmlFor="shortName">Code*</label>
+                                                    <input type="text"
+                                                        className="form-control"
+                                                        name="shortName"
+                                                        onChange={(e) => this._handleInputChange(e)}
+                                                        disabled={(this.state.disabled) ? "disabled" : ""}
+                                                        maxLength='3'
+                                                        required
+                                                    // disabled="disabled"
                                                     />
                                                 </div>
                                             </div>
@@ -597,7 +609,7 @@ class Event extends Component {
                                                 <MyMapComponent isMarkerShown mapProps={this.props} />
                                             </div>
                                             <div className="form-group">
-                                                <label htmlFor="location">Location</label>
+                                                <label htmlFor="location">Location**</label>
                                                 <textarea className="form-control"
                                                     name="location"
                                                     value={this.state.location}
@@ -608,9 +620,9 @@ class Event extends Component {
                                                 />
                                             </div>
                                         </div>
-
-                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>*In case of position error</div>
-                                        <div className="text-danger font-weight-light font-italic" style={{ color: "red", fontSize: "12px" }}>**Image and Participant can't be edit please be careful before click 'Create'</div>
+                                        <div className="text-danger font-weight-light font-italic col-12" style={{ color: "red", fontSize: "12px" }}>*3 character of Event for generate code</div>
+                                        <div className="text-danger font-weight-light font-italic col-12" style={{ color: "red", fontSize: "12px" }}>**In case of position error</div>
+                                        <div className="text-danger font-weight-light font-italic col-12" style={{ color: "red", fontSize: "12px" }}>***Image and Participant can't be edited please be careful before click 'Create'</div>
                                         {/* progress bar */}
                                         <div className="progress col-12">
                                             <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: this.state.progressBar }} />
@@ -656,6 +668,30 @@ class Event extends Component {
     }
 }
 
+function createCode(props) {
+    var character = "abcdefghijklmnopqrstuvwxyzABCDEFGHITKLMNOPQRSTUVWXYZ0123456789"
+    var newCode = props.code
+    for (let i = 0; i < 3; i++) {
+        newCode += character[Math.floor(Math.random() * 62)]
+    }
+    checkCodeExist({ newCode: newCode, newEventKey: props.newEventKey });
+}
+
+function checkCodeExist(props) {
+    var character = "abcdefghijklmnopqrstuvwxyzABCDEFGHITKLMNOPQRSTUVWXYZ0123456789"
+    codesRef.child(props.newCode).once("value", snapshot => {
+        const codeData = snapshot.val();
+        if (codeData) {
+            checkCodeExist({ newCode: props.newCode + character[Math.floor(Math.random() * 62)], newEventKey: props.newEventKey })
+        } else {
+            codesRef.child(props.newCode).update({
+                event: props.newEventKey,
+                status: 'not_activate',
+            })
+        }
+    });
+
+}
 
 function EventCards(props) {
 
@@ -708,7 +744,7 @@ function EventModals(props) {
 }
 function EventModal(props) {
     var codeView = [];
-    var codeString = '';
+    var codeString = [];
     var codes = allCode[allCodeKey.indexOf(props.event.id)];
     if (codes) {
         for (let index = 0; index < codes.length; index++) {
@@ -725,7 +761,7 @@ function EventModal(props) {
                     </div>
                     <hr />
                 </div>);
-            codeString += code[0] + ' ';
+            codeString.push(code[0]);
             // console.log(codeString)
         }
     }
@@ -1130,59 +1166,3 @@ const mapDispatchToProps = (dispatch) => {
 
 
 export default connect(mapStateToProps, mapDispatchToProps)(Event);
-
-
-
-
-
-
-
-
-// function Slide(props) {
-//     return (
-//         <div id="demo" className="carousel slide bg-dark" data-ride="carousel">
-//             <ul className="carousel-indicators">
-//                 <li data-target="#demo" data-slide-to="0" className="active"></li>
-//                 <li data-target="#demo" data-slide-to="1"></li>
-//                 <li data-target="#demo" data-slide-to="2"></li>
-//             </ul>
-//             <div className="carousel-inner">
-//                 <div className="carousel-item active">
-//                     <img src="no-img.png" className="mx-auto d-block" alt="Los Angeles" width="1100" height="500" />
-//                     <div className="carousel-caption">
-//                         <h3>Test 1</h3>
-//                         <p>{props.testvalue}</p>
-//                     </div>
-//                 </div>
-//                 <div className="carousel-item">
-//                     <img src="no-img.png" className="mx-auto d-block" alt="Chicago" width="1100" height="500" />
-//                     <div className="carousel-caption">
-//                         <h3>Test 2</h3>
-//                         <p>Thank you, Chicago!</p>
-//                     </div>
-//                 </div>
-//                 <div className="carousel-item">
-//                     <img src="no-img.png" className="mx-auto d-block" alt="New York" width="1100" height="500" />
-//                     <div className="carousel-caption">
-//                         <h3>Test 3</h3>
-//                         <p>We love the Big Apple!</p>
-//                     </div>
-//                 </div>
-
-//                 <a className="carousel-control-prev" href="#demo" data-slide="prev">
-//                     <span className="carousel-control-prev-icon"></span>
-//                 </a>
-//                 <a className="carousel-control-next" href="#demo" data-slide="next">
-//                     <span className="carousel-control-next-icon"></span>
-//                 </a>
-
-//             </div>
-//         </div>
-//     );
-// }
-
-
-
-
-
-

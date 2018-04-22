@@ -22,6 +22,13 @@ requestsRef.on('child_added', snap => {
     // this.setState({ users: [user].concat(this.state.users) });
     // console.log(snap.val());
     if (request.data.requestType === 'Event') {
+        if (new Date(request.data.endDate).getTime() + 86400000 < new Date().getTime() && request.data.status === "in-progress") {
+            // console.log(new Date(request.data.endDate).getTime() + " " + new Date().getTime())
+            // console.log(new Date(request.data.endDate))
+            fire.database().ref('requests/' + request.id).update({
+                status: "done"
+            });
+        }
         allEvent.push(request);
     } else {
         // allRequest.push(request)
@@ -942,7 +949,7 @@ function EventModal(props) {
                                                         <input className="form-control"
                                                             type="date"
                                                             name="endDate"
-                                                            min={props.event.data.startDate}
+                                                            min={todayDate}
                                                             defaultValue={props.event.data.endDate < props.event.data.startDate ? props.event.data.startDate : props.event.data.endDate}
                                                             // disabled="disabled"
 

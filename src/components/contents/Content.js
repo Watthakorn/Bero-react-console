@@ -8,7 +8,7 @@ import Request from './Request';
 
 import { Switch, Route, Redirect } from 'react-router-dom';
 import fire, { auth } from "../../fire";
-import { connect } from "react-redux"
+// import { connect } from "react-redux"
 import '../../css/bero.css';
 
 class Content extends Component {

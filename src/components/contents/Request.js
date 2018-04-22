@@ -1,18 +1,14 @@
 import React, { Component } from 'react';
 import fire from '../../fire';
 import '../../css/bero.css';
-import { compose, withProps, lifecycle, withStateHandlers } from "recompose"
+import { compose, withProps, withStateHandlers } from "recompose"
 import { withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow } from "react-google-maps"
 import { connect } from "react-redux"
-import GeoFire from "geofire"
+// import GeoFire from "geofire"
 
 
-var positionFirst = {
-    lat: 13.719349,
-    lng: 100.781223
-};
-var today = new Date();
-var todayDate = today.getFullYear() + '-' + ((today.getMonth() + 1) < 10 ? '0' + (today.getMonth() + 1) : today.getMonth() + 1) + '-' + today.getDate();
+// var today = new Date();
+// var todayDate = today.getFullYear() + '-' + ((today.getMonth() + 1) < 10 ? '0' + (today.getMonth() + 1) : today.getMonth() + 1) + '-' + today.getDate();
 
 // var allEvent = [];
 var allRequest = [];
@@ -23,6 +19,8 @@ requestsRef.on('child_added', snap => {
     // console.log(snap.val());
     if (request.data.requestType === 'Event') {
         // allEvent.push(request);
+    } else if (request.data.status === 'done') {
+
     } else {
         allRequest.push(request)
     }
@@ -92,6 +90,17 @@ class Request extends Component {
         // console.log(this.props.events.events);
 
     }
+    _handleChangePage(e) {
+        if (this.state.page === 1) {
+            this.setState({
+                page: 2,
+            })
+        } else {
+            this.setState({
+                page: 1,
+            })
+        }
+    }
 
 
 
@@ -99,7 +108,7 @@ class Request extends Component {
         return (
             <div>
                 <div className="d-flex justify-content-end">
-                    <h1 className="page-title"><i className="fa fa-gears"></i> Request</h1>
+                    <h1 className="page-title"><i className="fa fa-child"></i>Current Request</h1>
                 </div>
                 {/* <input type="text" value={this.state.value} onChange={this.handleChange} /> */}
                 {/* {this.state.value} */}
@@ -139,7 +148,7 @@ function RequestCard(props) {
     return (
         <div className="card text-right">
             <div className="bero-eventpic">
-                <img className="card-img-top" src={props.request.data.imageUrl} alt="Card image" />
+                <img className="card-img-top" src={props.request.data.imageUrl} alt="requestImg" />
             </div>
             <div className="card-body">
                 <h5 className="card-title">Request: {props.requestNo}</h5>
@@ -181,7 +190,7 @@ function RequestModal(props) {
                     <div className="row">
                         <div className="col-3">
                             <div className="col-12">
-                                <img src={snapshot.val().Profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
+                                <img alt="profilePic" src={snapshot.val().Profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
                             </div>
                         </div>
                         <div className="col-9 container-fluid d-flex align-content-around flex-wrap justify-content-start">
@@ -212,7 +221,7 @@ function RequestModal(props) {
                         <div className="row">
                             <div className="col-3">
                                 <div className="col-12">
-                                    <img src={snapshot.val().Profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
+                                    <img alt="profilePic" src={snapshot.val().Profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
                                 </div>
                             </div>
                             <div className="col-9 container-fluid d-flex align-content-around flex-wrap">
@@ -257,7 +266,7 @@ function RequestModal(props) {
                                         <img id="img-upload"
                                             src={props.request.data.imageUrl}
                                             className="mx-auto d-block"
-                                            alt="Image"
+                                            alt="requestImg"
                                         // style={{ maxHeight: '300px' }}
                                         />
                                     </div>

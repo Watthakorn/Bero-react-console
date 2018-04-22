@@ -118,7 +118,7 @@ function UserRow(props) {
     return (
         <tr>
             <td>{props.profile.facebookUid}</td>
-            <td><img className="border border-primary rounded" src={props.profile.profilePicture} style={{ width: "75px", height: "75px" }} /></td>
+            <td><img alt="profilePic" className="border border-primary rounded" src={props.profile.profilePicture} style={{ width: "75px", height: "75px" }} /></td>
             <td>{props.profile.displayName}</td>
             <td>{props.profile.score}</td>
             <td><a href="" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info-circle"></i> detail</a></td>
@@ -164,7 +164,7 @@ function UserModal(props) {
                                 </div> */}
                                 <div className="col-2">
                                     <div className="col-12">
-                                        <img src={props.profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
+                                        <img alt="profilePic" src={props.profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
                                     </div>
                                 </div>
                                 <div className="col-10 container-fluid d-flex align-content-around flex-wrap">
@@ -241,7 +241,7 @@ const mapStateToProps = (state) => {
     return {
         users: state.usersReducer,
         reports: state.reportsReducer,
-        users: state.usersReducer
+        user: state.userReducer
     }
 }
 const mapDispatchToProps = (dispatch) => {

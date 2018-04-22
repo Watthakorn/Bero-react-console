@@ -160,7 +160,7 @@ class Event extends Component {
         var imageRef = eventRef.child(fileName);
         var markerPosition = props.markerPosition;
         var databaseRef = fire.database().ref('requests');
-        var codeRef = fire.database().ref('codes');
+        // var codeRef = fire.database().ref('codes');
         var newEventKey = databaseRef.push().key;
         var geoFire = new GeoFire(fire.database().ref('geofire'));
         // console.log(newEventKey)
@@ -427,9 +427,9 @@ class Event extends Component {
         textField.select();
         document.execCommand('copy');
         if (e.target.value) {
-            alert("Copied code: " + "success!");
+            alert("Copied code: success!");
         } else {
-            alert("Copied code: " + "fail! no code seleted");
+            alert("Copied code: fail! no code seleted");
 
         }
         textField.remove();
@@ -494,7 +494,7 @@ class Event extends Component {
                                             <img id="img-upload"
                                                 src={imagePreviewUrl}
                                                 className="mx-auto d-block"
-                                                alt="Image"
+                                                alt="preImg"
                                                 width="900"
                                                 height="400"
                                             />
@@ -698,7 +698,9 @@ function EventCards(props) {
     var eventcards = [];
     var allEvent = props.events;
     // console.log(allEvent)
+    allEvent.sort(function (a, b) { return (b.data.when > a.data.when) ? 1 : ((a.data.when > b.data.when) ? -1 : 0); });
     allEvent.sort(function (a, b) { return (b.data.status > a.data.status) ? 1 : ((a.data.status > b.data.status) ? -1 : 0); });
+
 
     for (let index = 0; index < allEvent.length; index++) {
         let event = allEvent[index];
@@ -711,7 +713,7 @@ function EventCard(props) {
     return (
         <div className="card text-right">
             <div className="bero-eventpic">
-                <img className="card-img-top" src={props.event.data.imageUrl} alt="Card image" />
+                <img className="card-img-top" src={props.event.data.imageUrl} alt="eventImg" />
             </div>
             <div className="card-body">
                 <h5 className="card-title">Event: {props.eventNo}</h5>
@@ -756,7 +758,7 @@ function EventModal(props) {
                 <div key={code[0]}>
                     <div className="row">
                         <div className="col-6">
-                            <button className="btn" type="submit" onClick={props.onCopy} value={code[0]}>
+                            <button className="btn btn-light btn-sm" type="submit" onClick={props.onCopy} value={code[0]}>
                                 {code[0]}
                             </button>
                         </div>
@@ -799,7 +801,7 @@ function EventModal(props) {
                     <div className="row">
                         <div className="col-2">
                             <div className="col-12">
-                                <img src={comment.ownerprofilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
+                                <img alt="commentImg" src={comment.ownerprofilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
                             </div>
                             <div className="col-12 font-weight-bold">
                                 {comment.ownerName}
@@ -848,15 +850,15 @@ function EventModal(props) {
                                         <div className="col-4">
                                             <button style={{ marginRight: "10px" }} type="button" onClick={props.onClick}>View Detail</button>
                                             All Code : {codeAll.length}
-                                            <button className="btn fa fa-copy" type="submit" onClick={props.onCopy} value={codeString} />
+                                            <button className="btn btn-light btn-sm fa fa-copy" type="submit" onClick={props.onCopy} value={codeString} />
                                         </div>
                                         <div className="text-danger col-4">
                                             Not Activate : {codeNotactivate.length}
-                                            <button className="btn fa fa-copy" type="submit" onClick={props.onCopy} value={codeNotactivate} />
+                                            <button className="btn btn-light btn-sm fa fa-copy" type="submit" onClick={props.onCopy} value={codeNotactivate} />
                                         </div>
                                         <div className="text-success col-4">
                                             Activated : {codeActivate.length}
-                                            <button className="btn fa fa-copy" type="submit" onClick={props.onCopy} value={codeActivate} />
+                                            <button className="btn btn-light btn-sm fa fa-copy" type="submit" onClick={props.onCopy} value={codeActivate} />
                                         </div>
 
                                     </div>
@@ -870,7 +872,7 @@ function EventModal(props) {
                                             <img id="img-upload"
                                                 src={props.event.data.imageUrl}
                                                 className="mx-auto d-block"
-                                                alt="Image"
+                                                alt="eventImg"
                                             // style={{ maxHeight: '300px' }}
                                             />
                                         </div>
@@ -886,6 +888,8 @@ function EventModal(props) {
                                                         className="form-control"
                                                         name="eventName"
                                                         defaultValue={props.event.data.topic}
+
+                                                        disabled={props.event.data.status === "done" ? "disabled" : ""}
                                                     // disabled="disabled"
                                                     />
                                                 </div>
@@ -897,6 +901,8 @@ function EventModal(props) {
                                                         className="form-control"
                                                         name="tag"
                                                         defaultValue={props.event.data.tag}
+
+                                                        disabled={props.event.data.status === "done" ? "disabled" : ""}
                                                     // disabled="disabled"
                                                     />
                                                 </div>
@@ -926,6 +932,8 @@ function EventModal(props) {
                                                             min={todayDate}
                                                             defaultValue={props.event.data.startDate}
                                                             // disabled="disabled"
+
+                                                            disabled={props.event.data.status === "done" ? "disabled" : ""}
                                                             required
                                                         />
                                                     </div>
@@ -937,6 +945,8 @@ function EventModal(props) {
                                                             min={props.event.data.startDate}
                                                             defaultValue={props.event.data.endDate < props.event.data.startDate ? props.event.data.startDate : props.event.data.endDate}
                                                             // disabled="disabled"
+
+                                                            disabled={props.event.data.status === "done" ? "disabled" : ""}
                                                             required
                                                         />
                                                     </div>
@@ -962,6 +972,8 @@ function EventModal(props) {
                                                     name="detail"
                                                     defaultValue={props.event.data.detail}
                                                     style={{ minHeight: '190px' }}
+
+                                                    disabled={props.event.data.status === "done" ? "disabled" : ""}
                                                 // disabled="disabled"
                                                 />
                                             </div>
@@ -980,6 +992,8 @@ function EventModal(props) {
                                                     name="location"
                                                     defaultValue={props.event.data.location}
                                                     style={{ minHeight: '100px' }}
+
+                                                    disabled={props.event.data.status === "done" ? "disabled" : ""}
                                                 // disabled="disabled"
                                                 />
                                             </div>
@@ -999,7 +1013,9 @@ function EventModal(props) {
 
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                            {props.page === 1 ?
+                            {props.page === 1 ? props.event.data.status === "done" ?
+                                <button name="submitBtn" type="submit" value={props.event.id} className="btn btn-primary" disabled="disabled">Save changes</button>
+                                :
                                 <button name="submitBtn" type="submit" value={props.event.id} className="btn btn-primary">Save changes</button>
                                 : ''}
                         </div>

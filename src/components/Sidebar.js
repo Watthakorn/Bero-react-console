@@ -18,7 +18,7 @@ class Sidebar extends Component {
     }
 
     async loginFacebook() {
-        var user = [];
+        // var user = [];
         var thisState = this;
         if (auth().currentUser) {
             this.props.loginFace(auth().currentUser);
@@ -26,21 +26,21 @@ class Sidebar extends Component {
         } else {
             await auth().signInWithPopup(provider).then(function (result) {
                 // This gives you a Facebook Access Token. You can use it to access the Facebook API.
-                var token = result.credential.accessToken;
+                // var token = result.credential.accessToken;
                 // The signed-in user info.
-                var user = result.user;
+                // var user = result.user;
                 // console.log("dwdwd");
                 // ...
 
                 // console.log(user.providerData[0].uid);
             }).catch(function (error) {
                 // Handle Errors here.
-                var errorCode = error.code;
+                // var errorCode = error.code;
                 var errorMessage = error.message;
                 // The email of the user's account used.
-                var email = error.email;
+                // var email = error.email;
                 // The firebase.auth.AuthCredential type that was used.
-                var credential = error.credential;
+                // var credential = error.credential;
                 // ...
                 console.log(errorMessage);
 
@@ -137,7 +137,7 @@ function AlreadyLogin(props) {
                 <div className="row">
                     <div className="col-12 col-xl-6">
                         {user.providerData ?
-                            <img src={"http://graph.facebook.com/" + user.providerData[0].uid + "/picture?type=square"}
+                            <img alt="profilePic" src={"http://graph.facebook.com/" + user.providerData[0].uid + "/picture?type=square"}
                                 style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
                             : ''}
                     </div>

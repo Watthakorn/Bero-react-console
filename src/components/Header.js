@@ -77,7 +77,7 @@ class Header extends Component {
                         </div>
 
                         <div className="navbar col-2 col-sm-2 col-md-3 top-title bg-light">
-                            <a id="topTitle" className="navbar-brand text-dark"></a>
+                            {/* <a id="topTitle" className="navbar-brand text-dark"></a> */}
                         </div>
 
                         <div className="nav col-6 col-sm-7 col-md-7 top-title bg-light d-flex justify-content-end">

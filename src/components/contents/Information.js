@@ -144,6 +144,7 @@ class Information extends Component {
             infoName: '',
             infoType: '',
             detail: '',
+            location: '',
             contact: '',
             progressBar: '',
             disabled: false,

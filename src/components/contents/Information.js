@@ -277,9 +277,9 @@ class Information extends Component {
                                                                 required
                                                             >
                                                                 <option value="" defaultValue disabled>Choose here</option>
-                                                                <option>Police_Station</option>
+                                                                <option>Police Station</option>
                                                                 <option>Hospital</option>
-                                                                <option>Fire_Station</option>
+                                                                <option>Fire Station</option>
                                                                 <option>Etc.</option>
                                                             </select>
                                                         </div>
@@ -450,9 +450,9 @@ function InfoModal(props) {
                                                     name="infoType"
                                                     defaultValue={props.info.data.type}
                                                 >
-                                                    <option>Police_Station</option>
+                                                    <option>Police Station</option>
                                                     <option>Hospital</option>
-                                                    <option>Fire_Station</option>
+                                                    <option>Fire Station</option>
                                                     <option>Etc.</option>
                                                 </select>
                                             </div>
@@ -578,7 +578,7 @@ const InformationsMap = compose(
     withProps({
         googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyCTYHNPsOIlGpD30J91XzKH-NDzqpUA71M&v=3.exp&libraries=geometry,drawing,places",
         loadingElement: <div style={{ height: `100%` }} />,
-        containerElement: <div style={{ height: `450px` }} />,
+        containerElement: <div style={{ height: `650px` }} />,
         mapElement: <div style={{ height: `100%`, width: '100%' }} />,
     }),
     withStateHandlers(() => ({

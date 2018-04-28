@@ -99,9 +99,9 @@ class Sidebar extends Component {
                                 <li className="nav-item btn-light">
                                     <Link className="nav-link" to="/report"><i className="fa fa-file-text-o"></i> Report</Link>
                                 </li>
-                                <li className="nav-item btn-light">
+                                {/* <li className="nav-item btn-light">
                                     <Link className="nav-link" to="/information"><i className="fa fa-building-o"></i> Infomation</Link>
-                                </li>
+                                </li> */}
                                 <li className="nav-item btn-light">
                                     <Link className="nav-link" to="/user"><i className="fa fa-users"></i> User</Link>
                                 </li>

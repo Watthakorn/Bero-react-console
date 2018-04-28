@@ -13,6 +13,7 @@ reportsRef.on('child_added', snap => {
     // allReportKey.push(report.id)
     allReport.push(report);
 });
+
 var allUser = [];
 var usersRef = fire.database().ref('users');
 usersRef.on('child_added', snap => {
@@ -126,12 +127,19 @@ function NotiBell(props) {
 function ReportNoti(props) {
     var reportcards = [];
     var allReport = props.allReport;
+    allReport.sort(function (a, b) { return (b.data.when > a.data.when) ? 1 : ((a.data.when > b.data.when) ? -1 : 0); });
+    allReport.sort(function (a, b) { return (b.data.status > a.data.status) ? 1 : ((a.data.status > b.data.status) ? -1 : 0); });
     if (allReport) {
         for (let index = 0; index < allReport.length; index++) {
             let report = allReport[index];
             if (report.data.status === "inprogress") {
                 reportcards.push(<div key={report.id}>
-                    <button className="dropdown-item" type="button" data-toggle="modal" data-target={"#" + report.id}><i className="fa fa-info-circle" /> {report.data.title}</button>
+                    <button className="dropdown-item" type="button" data-toggle="modal" data-target={"#" + report.id}><i className="fa fa-file-text-o" /> {report.data.title}
+                        <div className="col-12 font-weight-light d-flex justify-content-end" style={{ paddingTop: "1px", fontSize: "12px" }}>
+                            {Math.floor((Date.now() - report.data.when) / 3600000) + ' hr ' +
+                                Math.floor((((Date.now() - report.data.when) / 3600000) % 1) * 60) + ' min ago'}
+                        </div>
+                    </button>
                     <div className="dropdown-divider"></div>
                 </div>);
             }
@@ -154,7 +162,7 @@ function ReportModals(props) {
 }
 
 function ReportModal(props) {
-    var target = [];
+    // var target = [];
     var owner = [];
     if (props.report.data.owner) {
         var ownerRef = fire.database().ref('users/' + props.report.data.owner);
@@ -162,14 +170,15 @@ function ReportModal(props) {
             owner = snapshot.val();
         });
     }
-    if (props.report.data.target) {
-        var targetRef = fire.database().ref('users/' + props.report.data.target);
-        targetRef.on('value', function (snapshot) {
-            target = snapshot.val();
-        });
-
-    }
+    // if (props.report.data.target) {
+    //     var targetRef = fire.database().ref('users/' + props.report.data.target);
+    //     targetRef.on('value', function (snapshot) {
+    //         target = snapshot.val();
+    //     });
+    // }
     // console.log(target)
+
+    var reportDate = new Date(props.report.data.when);
     return (
         <div className="modal fade" id={props.target} role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -194,23 +203,27 @@ function ReportModal(props) {
                                     </div>
                                     : ''}
                             </div>
-                            {target.Profile ?
+                            {/* {target.Profile ?
                                 <div>
                                     <br />
                                     <div className="col-12 row d-flex align-items-center">
                                         <div className="col-6"></div>
                                         <div className="col-6">Target: <input className="form-control" value={target.Profile.displayName} disabled="disabled" /></div>
                                     </div>
-                                </div> : ''}
+                                </div> : ''} */}
                             <br />
                             <div className="col-12 row d-flex align-items-center">
                                 <div className="col-12">Detail:
                                 <textarea className="form-control"
                                         value={props.report.data.detail}
                                         disabled="disabled"
-                                        style={{ minHeight: "200px" }}
+                                        style={{ minHeight: "310px", resize: "none" }}
                                     />
                                 </div>
+                            </div>
+
+                            <div className="col-12 font-weight-light">
+                                {reportDate.toString()}
                             </div>
                             <br />
                             {/* <div className="col-12 row d-flex align-items-center">

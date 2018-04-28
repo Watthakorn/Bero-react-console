@@ -15,6 +15,14 @@ import { connect } from "react-redux";
 
 class User extends Component {
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            pagenumber: 1,
+            itemperpage: 10
+        };
+    }
+
     componentWillMount() {
         var allUser = [];
         var usersRef = fire.database().ref('users');
@@ -60,9 +68,23 @@ class User extends Component {
         // console.log("hey wake up!");
         e.target.score.disabled = "disabled";
         e.target.submitBtn.disabled = "disabled";
-
     }
 
+    _handlePagination(e) {
+        e.preventDefault();
+        this.setState({
+            pagenumber: e.target.value,
+        })
+        // console.log(e.target.value)
+    }
+
+
+    _handleUpgradeToAdmin(e) {
+        e.preventDefault();
+        fire.database().ref('users/' + e.target.value + '/Profile').update({
+            type: "Admin",
+        });
+    }
 
     render() {
 
@@ -74,6 +96,9 @@ class User extends Component {
                 <div className="d-flex justify-content-end">
                     <h1 className="page-title"><i className="fa fa-users"></i> User</h1>
                 </div>
+                <ul className="pagination">
+                    <Page page={Math.ceil(users.length / this.state.itemperpage)} pagenumber={this.state.pagenumber} onClick={(e) => this._handlePagination(e)} />
+                </ul>
                 <h2>Table user</h2>
                 <div className="table-responsive">
                     <table className="table table-striped table-sm">
@@ -87,12 +112,14 @@ class User extends Component {
                             </tr>
                         </thead>
                         <tbody>
-                            <UserRows allUser={users} />
+                            <UserRows allUser={users} pagenumber={this.state.pagenumber} itemperpage={this.state.itemperpage} />
                         </tbody>
                     </table>
                 </div>
 
-                <UserModals allUser={users} onSubmit={(e) => this._handleSaveChange(e)} />
+                <UserModals allUser={users} onSubmit={(e) => this._handleSaveChange(e)}
+                    onClick={(e) => this._handleUpgradeToAdmin(e)}
+                    pagenumber={this.state.pagenumber} itemperpage={this.state.itemperpage} />
 
 
 
@@ -101,15 +128,45 @@ class User extends Component {
     }
 }
 
+
+function Page(props) {
+    var pages = [];
+    if (props.page) {
+        for (let index = 0; index < props.page; index++) {
+            pages.push(<li key={index} className="page-item"><button onClick={props.onClick}
+                className="page-link" value={index + 1}>{index + 1}</button></li>)
+        }
+    }
+
+    return pages;
+}
+
 function UserRows(props) {
     var userrows = [];
     var allUser = props.allUser;
-    if (allUser) {
-        for (let index = 0; index < allUser.length; index++) {
-            let user = allUser[index];
-            userrows.push(<UserRow key={user.id} user={user} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
-        }
+    allUser.sort(function (a, b) { return (a.data.Profile.facebookUid > b.data.Profile.facebookUid) ? 1 : ((b.data.Profile.facebookUid > a.data.Profile.facebookUid) ? -1 : 0); });
 
+    var itemperpage = props.itemperpage;
+    var userlength = allUser.length;
+    var page = props.pagenumber;
+    var lastpage = Math.ceil(userlength / itemperpage);
+
+    if (allUser) {
+        if (page >= lastpage && userlength % itemperpage !== 0) {
+            for (let index = 0; index < userlength % itemperpage; index++) {
+                let user = allUser[index + (itemperpage * (page - 1))];
+                userrows.push(<UserRow key={user.id} user={user} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
+            }
+        } else {
+            for (let index = 0; index < itemperpage; index++) {
+                let user = allUser[index + (itemperpage * (page - 1))];
+                userrows.push(<UserRow key={user.id} user={user} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
+            }
+        }
+        // for (let index = 0; index < allUser.length; index++) {
+        //     let user = allUser[index];
+        //     userrows.push(<UserRow key={user.id} user={user} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
+        // }
     }
     return userrows;
 
@@ -130,11 +187,31 @@ function UserRow(props) {
 function UserModals(props) {
     var usermodals = [];
     var allUser = props.allUser;
+
+    var itemperpage = props.itemperpage;
+    var userlength = allUser.length;
+    var page = props.pagenumber;
+    var lastpage = Math.ceil(userlength / itemperpage);
+
     if (allUser) {
-        for (let index = 0; index < allUser.length; index++) {
-            let user = allUser[index];
-            usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id} onSubmit={props.onSubmit} />);
+        if (page >= lastpage && userlength % itemperpage !== 0) {
+            for (let index = 0; index < userlength % itemperpage; index++) {
+                let user = allUser[index + (itemperpage * (page - 1))];
+                usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id}
+                    onSubmit={props.onSubmit} onClick={props.onClick} />);
+            }
+        } else {
+            for (let index = 0; index < itemperpage; index++) {
+                let user = allUser[index + (itemperpage * (page - 1))];
+                usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id}
+                    onSubmit={props.onSubmit} onClick={props.onClick} />);
+            }
         }
+
+        // for (let index = 0; index < allUser.length; index++) {
+        //     let user = allUser[index];
+        //     usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id} onSubmit={props.onSubmit} />);
+        // }
     }
     return usermodals;
 
@@ -224,7 +301,10 @@ function UserModal(props) {
                             </div>
 
                         </div>
-                        <div className="modal-footer">
+                        <div className="modal-footer d-flex">
+                            {props.profile.type === "Admin" ? '' :
+                                <button value={props.user.id} onClick={props.onClick} className="mr-auto btn btn-danger" disabled="">Upgrade To Admin</button>
+                            }
                             <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
                             <button type="submit" name="submitBtn" value={props.user.id} className="btn btn-primary" disabled="">Save changes</button>
                         </div>

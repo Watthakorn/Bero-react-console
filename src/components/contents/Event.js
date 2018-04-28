@@ -76,7 +76,9 @@ class Event extends Component {
             page: 1,
             pageEvent: 1,
             changeMarker: '',
-            currentId: ''
+            currentId: '',
+            pagenumber: 1,
+            itemperpage: 6,
         };
     }
 
@@ -217,7 +219,7 @@ class Event extends Component {
                 var formatStartDate = startDate.getDate() + '/' + (startDate.getMonth() + 1) + '/' + startDate.getFullYear();
                 var formatEndDate = endDate.getDate() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getFullYear();
 
-
+                var tags = state.tag.split(",");
 
                 //database push HERE
                 databaseRef.child(newEventKey).set({
@@ -236,7 +238,7 @@ class Event extends Component {
                     ownerprofilePicture: "http://graph.facebook.com/" + props.user.user.providerData[0].uid + "/picture?type=square",
                     ownerUid: props.user.user.uid,
                     rated: 0,
-                    tag: state.tag,
+                    tag: tags,
                     requestType: 'Event',
                     timeEvent: formatStartDate + '-' + formatEndDate,
                     startDate: state.startDate,
@@ -311,24 +313,27 @@ class Event extends Component {
     //     };
     // }
 
-    // _handleOnClear(e) {
-    //     e.preventDefault();
+    _handleOnClear(e) {
+        e.preventDefault();
 
-    //     this.setState = {
-    //         file: '',
-    //         imagePreviewUrl: 'no-img.png',
-    //         eventName: '',
-    //         participant: 10,
-    //         startDate: '',
-    //         endDate: '',
-    //         detail: '',
-    //         showModal: true,
-    //         progressBar: '',
-    //         disabled: false,
-    //         showCreate: true
-    //     };
+        this.setState({
+            file: '',
+            imagePreviewUrl: 'no-img.png',
+            eventName: '',
+            participant: 10,
+            startDate: todayDate,
+            endDate: todayDate,
+            detail: '',
+            showModal: true,
+            progressBar: '',
+            disabled: false,
+            showCreate: true,
+            tag: '',
+            shortName: '',
+            location: '',
+        })
 
-    // }
+    }
 
     _handleChangePage(e) {
         if (this.state.page === 1) {
@@ -373,6 +378,7 @@ class Event extends Component {
         var formatDate = '';
         var start = '';
         var end = '';
+        var tags = e.target.tag.value.split(",")
         if (e.target.startDate && e.target.endDate) {
             var startDate = new Date(e.target.startDate.value);
             var endDate;
@@ -398,7 +404,7 @@ class Event extends Component {
         if (e.target.id === this.state.currentId) {
             fire.database().ref('requests/' + e.target.id).update({
                 topic: e.target.eventName.value,
-                tag: e.target.tag.value,
+                tag: tags,
                 detail: e.target.detail.value,
                 startDate: start,
                 endDate: end,
@@ -413,7 +419,7 @@ class Event extends Component {
         else {
             fire.database().ref('requests/' + e.target.id).update({
                 topic: e.target.eventName.value,
-                tag: e.target.tag.value,
+                tag: tags,
                 detail: e.target.detail.value,
                 startDate: start,
                 endDate: end,
@@ -451,6 +457,14 @@ class Event extends Component {
         textField.remove();
     }
 
+    _handlePagination(e) {
+        e.preventDefault();
+        this.setState({
+            pagenumber: e.target.value,
+        })
+        // console.log(e.target.value)
+    }
+
     render() {
         let { imagePreviewUrl } = this.state;
         return (
@@ -469,10 +483,13 @@ class Event extends Component {
 
                 {/* card */}
 
-                {/* {JSON.stringify(allCode[0])} */}
-                <div className="card-columns event-card">
+                <ul className="pagination">
+                    <Page page={Math.ceil(allEvent.length / this.state.itemperpage)} pagenumber={this.state.pagenumber} onClick={(e) => this._handlePagination(e)} />
+                </ul>
 
-                    <EventCards events={allEvent} />
+                {/* {JSON.stringify(allCode[0])} */}
+                <div className="row">
+                    <EventCards events={allEvent} pagenumber={this.state.pagenumber} itemperpage={this.state.itemperpage} />
                 </div>
 
 
@@ -537,6 +554,7 @@ class Event extends Component {
                                                     <input type="text"
                                                         className="form-control"
                                                         name="shortName"
+                                                        value={this.state.shortName}
                                                         onChange={(e) => this._handleInputChange(e)}
                                                         disabled={(this.state.disabled) ? "disabled" : ""}
                                                         maxLength='3'
@@ -547,7 +565,9 @@ class Event extends Component {
                                             </div>
                                             <div className="form-row">
                                                 <div className="form-group col-sm-8">
-                                                    <label htmlFor="tag">Tag</label>
+                                                    <label htmlFor="tag">Tag
+                                        <a className="text-danger font-weight-light font-italic col-12" style={{ color: "red", fontSize: "10px" }}>use comma "," for additional tag</a>
+                                                    </label>
                                                     <input type="text"
                                                         className="form-control"
                                                         name="tag"
@@ -665,7 +685,7 @@ class Event extends Component {
                                     </div>
                                     :
                                     <div className="modal-footer">
-                                        {/* <button type="button" className="btn btn-primary" onClick={(e) => this._handleOnClear(e)}> Clear</button> */}
+                                        <button type="button" className="btn btn-primary" onClick={(e) => this._handleOnClear(e)}> Clear</button>
                                         <button type="button" className="btn btn-success" data-dismiss="modal"> Done</button>
                                     </div>}
                             </form>
@@ -675,6 +695,7 @@ class Event extends Component {
                 </div>
 
                 <EventModals events={allEvent} page={this.state.page} infostate={this}
+                    pagenumber={this.state.pagenumber} itemperpage={this.state.itemperpage}
                     onSubmit={(e) => this._handleSaveChange(e)}
                     onPageClick={(e) => this._handleChangePage(e)}
                     onPageClick2={(e) => this._handleChangePage2(e)}
@@ -682,6 +703,16 @@ class Event extends Component {
             </div>
         );
     }
+}
+
+function Page(props) {
+    var pages = [];
+    if (props.page) {
+        for (let index = 0; index < props.page; index++) {
+            pages.push(<li key={index} className="page-item"><button onClick={props.onClick} className="page-link" value={index + 1}>{index + 1}</button></li>)
+        }
+    }
+    return pages;
 }
 
 function createCode(props) {
@@ -706,7 +737,6 @@ function checkCodeExist(props) {
             })
         }
     });
-
 }
 
 function EventCards(props) {
@@ -714,31 +744,56 @@ function EventCards(props) {
     var eventcards = [];
     var allEvent = props.events;
     // console.log(allEvent)
+    var eventlength = allEvent.length;
+    var page = props.pagenumber;
+    var itemperpage = props.itemperpage;
+    var lastpage = Math.ceil(eventlength / itemperpage);
+
+
     allEvent.sort(function (a, b) { return (b.data.when > a.data.when) ? 1 : ((a.data.when > b.data.when) ? -1 : 0); });
     allEvent.sort(function (a, b) { return (b.data.status > a.data.status) ? 1 : ((a.data.status > b.data.status) ? -1 : 0); });
-
-
-    for (let index = 0; index < allEvent.length; index++) {
-        let event = allEvent[index];
-        eventcards.push(<EventCard key={event.id} event={event} eventNo={index + 1} target={"#" + event.id} />);
+    if (allEvent) {
+        if (page >= lastpage && eventlength % itemperpage !== 0) {
+            // console.log(eventlength % itemperpage)
+            for (let index = 0; index < eventlength % itemperpage; index++) {
+                let event = allEvent[index + (itemperpage * (page - 1))];
+                if (event) {
+                    eventcards.push(<EventCard key={event.id} event={event} eventNo={index + (itemperpage * (page - 1)) + 1} target={"#" + event.id} />);
+                }
+            }
+        } else {
+            for (let index = 0; index < itemperpage; index++) {
+                let event = allEvent[index + (itemperpage * (page - 1))];
+                if (event) {
+                    eventcards.push(<EventCard key={event.id} event={event} eventNo={index + (itemperpage * (page - 1)) + 1} target={"#" + event.id} />);
+                }
+            }
+        }
+        // for (let index = 0; index < eventlength; index++) {
+        //     let event = allEvent[index];
+        //     eventcards.push(<EventCard key={event.id} event={event} eventNo={index + 1} target={"#" + event.id} />);
+        // }
     }
     return eventcards;
 }
 
 function EventCard(props) {
     return (
-        <div className="card text-right">
-            <div className="bero-eventpic">
-                <img className="card-img-top" src={props.event.data.imageUrl} alt="eventImg" />
+        <div className="col-md-6 col-xl-4 event-card">
+            <div className="card text-right">
+                <div className="bero-eventpic">
+                    <img className="card-img-top" src={props.event.data.imageUrl} alt="eventImg" />
+                </div>
+                <div className="card-body">
+                    <h5 className="card-title">Event: {props.eventNo}</h5>
+                    <p className="card-text topic-overflow">{props.event.data.topic}</p>
+                    {props.event.data.status === "done" ?
+                        <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
+                        : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>
+                    }
+                </div>
             </div>
-            <div className="card-body">
-                <h5 className="card-title">Event: {props.eventNo}</h5>
-                <p className="card-text topic-overflow">{props.event.data.topic}</p>
-                {props.event.data.status === "done" ?
-                    <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
-                    : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>
-                }
-            </div>
+
         </div>
     );
 
@@ -751,13 +806,39 @@ function EventModals(props) {
     var allEvent = props.events;
     // console.log(allEvent)
     // console.log(props.events)
+    var eventlength = allEvent.length;
+    var page = props.pagenumber;
+    var itemperpage = props.itemperpage;
+    var lastpage = Math.ceil(eventlength / itemperpage);
+    if (allEvent) {
+        if (page >= lastpage && eventlength % itemperpage !== 0) {
+            // console.log(eventlength % itemperpage)
+            for (let index = 0; index < eventlength % itemperpage; index++) {
+                let event = allEvent[index + (itemperpage * (page - 1))];
+                if (event) {
+                    eventmodals.push(<EventModal key={event.id} event={event} page={props.page} onSubmit={props.onSubmit}
+                        eventNo={index + (itemperpage * (page - 1)) + 1} target={event.id} infostate={props.infostate}
+                        onClick={props.onPageClick} onClick2={props.onPageClick2} onCopy={props.onClickCopy} />);
+                }
+            }
+        } else {
+            for (let index = 0; index < itemperpage; index++) {
+                let event = allEvent[index + (itemperpage * (page - 1))];
+                if (event) {
+                    eventmodals.push(<EventModal key={event.id} event={event} page={props.page} onSubmit={props.onSubmit}
+                        eventNo={index + (itemperpage * (page - 1)) + 1} target={event.id} infostate={props.infostate}
+                        onClick={props.onPageClick} onClick2={props.onPageClick2} onCopy={props.onClickCopy} />);
+                }
+            }
 
-    for (let index = 0; index < allEvent.length; index++) {
-        let event = allEvent[index];
-        eventmodals.push(<EventModal key={event.id} event={event} page={props.page} onSubmit={props.onSubmit}
-            eventNo={index + 1} target={event.id} infostate={props.infostate}
-            onClick={props.onPageClick} onClick2={props.onPageClick2} onCopy={props.onClickCopy} />);
+        }
     }
+    // for (let index = 0; index < eventlength; index++) {
+    //     let event = allEvent[index];
+    //     eventmodals.push(<EventModal key={event.id} event={event} page={props.page} onSubmit={props.onSubmit}
+    //         eventNo={index + 1} target={event.id} infostate={props.infostate}
+    //         onClick={props.onPageClick} onClick2={props.onPageClick2} onCopy={props.onClickCopy} />);
+    // }
     return eventmodals;
 }
 function EventModal(props) {
@@ -912,7 +993,9 @@ function EventModal(props) {
                                             </div>
                                             <div className="form-row">
                                                 <div className="form-group col-sm-8">
-                                                    <label htmlFor="tag">Tag</label>
+                                                    <label htmlFor="tag">Tag
+                                        <a className="text-danger font-weight-light font-italic col-12" style={{ color: "red", fontSize: "10px" }}>use comma "," for additional tag</a>
+                                                    </label>
                                                     <input type="text"
                                                         className="form-control"
                                                         name="tag"

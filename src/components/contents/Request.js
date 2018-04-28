@@ -19,8 +19,6 @@ requestsRef.on('child_added', snap => {
     // console.log(snap.val());
     if (request.data.requestType === 'Event') {
         // allEvent.push(request);
-    } else if (request.data.status === 'done') {
-
     } else {
         allRequest.push(request)
     }
@@ -34,6 +32,8 @@ class Request extends Component {
         super(props);
         this.state = {
             page: 1,
+            pagenumber: 1,
+            itemperpage: 3,
         };
     }
 
@@ -103,6 +103,14 @@ class Request extends Component {
     }
 
 
+    _handlePagination(e) {
+        e.preventDefault();
+        this.setState({
+            pagenumber: e.target.value,
+        })
+        // console.log(e.target.value)
+    }
+
 
     render() {
         return (
@@ -117,16 +125,32 @@ class Request extends Component {
 
 
                 {/* card */}
+                <ul className="pagination">
+                    <Page page={Math.ceil(allRequest.length / this.state.itemperpage)}
+                        pagenumber={this.state.pagenumber} onClick={(e) => this._handlePagination(e)} />
+                </ul>
 
                 {/* {JSON.stringify(allCode[0])} */}
-                <div className="card-columns event-card">
-                    <RequestCards requests={allRequest} />
+                <div className="row">
+                    <RequestCards requests={allRequest} pagenumber={this.state.pagenumber} itemperpage={this.state.itemperpage} />
                 </div>
 
-                <RequestModals requests={allRequest} page={this.state.page} onPageClick={(e) => this._handleChangePage(e)} />
+                <RequestModals requests={allRequest} page={this.state.page}
+                    pagenumber={this.state.pagenumber} itemperpage={this.state.itemperpage}
+                    onPageClick={(e) => this._handleChangePage(e)} />
             </div>
         );
     }
+}
+
+function Page(props) {
+    var pages = [];
+    if (props.page) {
+        for (let index = 0; index < props.page; index++) {
+            pages.push(<li key={index} className="page-item"><button onClick={props.onClick} className="page-link" value={index + 1}>{index + 1}</button></li>)
+        }
+    }
+    return pages;
 }
 
 function RequestCards(props) {
@@ -134,29 +158,54 @@ function RequestCards(props) {
     var eventcards = [];
     var allRequest = props.requests;
     // console.log(allEvent)
+    var requestlength = allRequest.length;
+    var page = props.pagenumber;
+    var itemperpage = props.itemperpage;
+    var lastpage = Math.ceil(requestlength / itemperpage);
 
     allRequest.sort(function (a, b) { return (b.data.when - a.data.when) });
 
-    for (let index = 0; index < allRequest.length; index++) {
-        let request = allRequest[index];
-        eventcards.push(<RequestCard key={request.id} request={request} requestNo={index + 1} target={"#" + request.id} />);
+    if (allRequest) {
+        if (page >= lastpage && requestlength % itemperpage !== 0) {
+            for (let index = 0; index < requestlength % itemperpage; index++) {
+                let request = allRequest[index + (itemperpage * (page - 1))];
+                if (request) {
+                    eventcards.push(<RequestCard key={request.id} request={request}
+                        requestNo={index + (itemperpage * (page - 1)) + 1} target={"#" + request.id} />);
+                }
+            }
+        } else {
+            for (let index = 0; index < itemperpage; index++) {
+                let request = allRequest[index + (itemperpage * (page - 1))];
+                if (request) {
+                    eventcards.push(<RequestCard key={request.id} request={request}
+                        requestNo={index + (itemperpage * (page - 1)) + 1} target={"#" + request.id} />);
+                }
+            }
+        }
     }
+    // for (let index = 0; index < allRequest.length; index++) {
+    //     let request = allRequest[index];
+    //     eventcards.push(<RequestCard key={request.id} request={request} requestNo={index + 1} target={"#" + request.id} />);
+    // }
     return eventcards;
 }
 
 function RequestCard(props) {
     return (
-        <div className="card text-right">
-            <div className="bero-eventpic">
-                <img className="card-img-top" src={props.request.data.imageUrl} alt="requestImg" />
-            </div>
-            <div className="card-body">
-                <h5 className="card-title">Request: {props.requestNo}</h5>
-                <p className="card-text topic-overflow">{props.request.data.topic}</p>
-                {props.request.data.status === "done" ?
-                    <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
-                    : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>
-                }
+        <div className="col-md-6 col-xl-4 event-card">
+            <div className="card text-right">
+                <div className="bero-eventpic">
+                    <img className="card-img-top" src={props.request.data.imageUrl} alt="requestImg" />
+                </div>
+                <div className="card-body">
+                    <h5 className="card-title">Request: {props.requestNo}</h5>
+                    <p className="card-text topic-overflow">{props.request.data.topic}</p>
+                    {props.request.data.status === "done" ?
+                        <a href="" className="btn btn-success" data-toggle="modal" data-target={props.target}><i className="fa fa-check-square-o" /> Done</a>
+                        : <a href="" className="btn btn-warning" data-toggle="modal" data-target={props.target}><i className="fa fa-info" /> Inprogress</a>
+                    }
+                </div>
             </div>
         </div>
     );
@@ -169,11 +218,35 @@ function RequestModals(props) {
     var allRequest = props.requests;
     // console.log(allEvent)
     // console.log(props.events)
-
-    for (let index = 0; index < allRequest.length; index++) {
-        let request = allRequest[index];
-        requestmodals.push(<RequestModal key={request.id} request={request} requestNo={index + 1} target={request.id} onClick={props.onPageClick} page={props.page} />);
+    var requestlength = allRequest.length;
+    var page = props.pagenumber;
+    var itemperpage = props.itemperpage;
+    var lastpage = Math.ceil(requestlength / itemperpage);
+    if (allRequest) {
+        if (page >= lastpage && requestlength % itemperpage !== 0) {
+            for (let index = 0; index < requestlength % itemperpage; index++) {
+                let request = allRequest[index + (itemperpage * (page - 1))];
+                if (request) {
+                    requestmodals.push(<RequestModal key={request.id} request={request} requestNo={index + 1}
+                        target={request.id} onClick={props.onPageClick} page={props.page} />);
+                }
+            }
+        } else {
+            for (let index = 0; index < itemperpage; index++) {
+                let request = allRequest[index + (itemperpage * (page - 1))];
+                if (request) {
+                    requestmodals.push(<RequestModal key={request.id} request={request} requestNo={index + 1}
+                        target={request.id} onClick={props.onPageClick} page={props.page} />);
+                }
+            }
+        }
     }
+
+
+    // for (let index = 0; index < allRequest.length; index++) {
+    //     let request = allRequest[index];
+    //     requestmodals.push(<RequestModal key={request.id} request={request} requestNo={index + 1} target={request.id} onClick={props.onPageClick} page={props.page} />);
+    // }
     return requestmodals;
 
 }

@@ -35,13 +35,13 @@
 }
 
 .bero-eventpic{
-    max-height: 300px;
-    overflow: scroll;
+    max-height: 250px;
+    overflow: hidden;
 }
-/* .bero-eventpic:hover{
+.bero-eventpic:hover{
     max-height: 100%;
     overflow: visible;
-} */
+}
 
 .bero-report-detail{
     height: 130px;

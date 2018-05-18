@@ -62,7 +62,7 @@ class User extends Component {
         // var userId = e.target.value;
         // console.log(e.target.id);
         fire.database().ref('users/' + e.target.id + '/Profile').update({
-            score: e.target.score.value,
+            point: e.target.score.value,
         });
         // this.props.updateUser(e.target.id, e.target.score.value);
         // console.log("hey wake up!");
@@ -107,7 +107,7 @@ class User extends Component {
                                 <th>FacebookID</th>
                                 <th>Picture</th>
                                 <th>Name</th>
-                                <th>Score</th>
+                                <th>Point</th>
                                 <th>More</th>
                             </tr>
                         </thead>
@@ -160,7 +160,9 @@ function UserRows(props) {
         } else {
             for (let index = 0; index < itemperpage; index++) {
                 let user = allUser[index + (itemperpage * (page - 1))];
-                userrows.push(<UserRow key={user.id} user={user} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
+                if (user) {
+                    userrows.push(<UserRow key={user.id} user={user} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
+                }
             }
         }
         // for (let index = 0; index < allUser.length; index++) {
@@ -177,7 +179,7 @@ function UserRow(props) {
             <td>{props.profile.facebookUid}</td>
             <td><img alt="profilePic" className="border border-primary rounded" src={props.profile.profilePicture} style={{ width: "75px", height: "75px" }} /></td>
             <td>{props.profile.displayName}</td>
-            <td>{props.profile.score}</td>
+            <td>{props.profile.point ? props.profile.point : '0'}</td>
             <td><a href="" className="btn btn-primary" data-toggle="modal" data-target={props.target}><i className="fa fa-info-circle"></i> detail</a></td>
         </tr>
     );
@@ -197,14 +199,18 @@ function UserModals(props) {
         if (page >= lastpage && userlength % itemperpage !== 0) {
             for (let index = 0; index < userlength % itemperpage; index++) {
                 let user = allUser[index + (itemperpage * (page - 1))];
-                usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id}
-                    onSubmit={props.onSubmit} onClick={props.onClick} />);
+                if (user) {
+                    usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id}
+                        onSubmit={props.onSubmit} onClick={props.onClick} />);
+                }
             }
         } else {
             for (let index = 0; index < itemperpage; index++) {
                 let user = allUser[index + (itemperpage * (page - 1))];
-                usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id}
-                    onSubmit={props.onSubmit} onClick={props.onClick} />);
+                if (user) {
+                    usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id}
+                        onSubmit={props.onSubmit} onClick={props.onClick} />);
+                }
             }
         }
 
@@ -269,34 +275,20 @@ function UserModal(props) {
                             <div className="col-12 row">
                                 <div className="col-6 d-flex align-items-center">
                                     <div>
-                                        CurrentScore : {props.profile.score}
+                                        CurrentPoint : {props.profile.point}
                                     </div>
-
-                                    {/* <div className="col-1">±</div>
-                                <div className="col-8 col-md-6">
-
-                                    <input type="number"
-                                        className="form-control"
-                                        name="score"
-                                    />
-                                </div> */}
 
                                 </div>
                                 <div className="col-6 d-flex align-items-center">
 
-                                    ChangeScore
+                                    ChangePoint
                                 <input type="number"
                                         className="form-control"
                                         name="score"
                                         style={{ marginLeft: "10px" }}
-                                        defaultValue={props.profile.score}
+                                        defaultValue={props.profile.point}
                                         disabled=""
                                     />
-                                    {/* UserStatus :
-                                {true
-                                    ? <button type="button" className="btn btn-success">normal</button>
-                                    : <button type="button" className="btn btn-danger">ban</button>
-                                } */}
                                 </div>
                             </div>
 

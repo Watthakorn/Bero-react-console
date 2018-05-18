@@ -881,13 +881,28 @@ function EventModal(props) {
     }
     var commentView = [];
     var comments = props.event.data.Comments;
+    var totalComment = 0;
+    var totalRate = 0;
+    var totalStar = [];
     if (comments) {
-        var commentsKey = Object.keys(comments);
-        for (let index = 0; index < commentsKey.length; index++) {
+        var commentsKey = Object.keys(comments).sort().reverse();
+        totalComment = commentsKey.length;
+        for (let index = 0; index < totalComment; index++) {
             let commentKey = commentsKey[index]
             let comment = comments[commentKey];
             // console.log(comment);
             var commentDate = new Date(comment.when);
+            var rateStar = [];
+            totalRate += comment.rate;
+
+            for (let index = 0; index < 5; index++) {
+                if (index < comment.rate) {
+                    rateStar.push(<i key={index} className="fa fa-star text-warning" />);
+                } else {
+                    rateStar.push(<i key={index} className="fa fa-star-o" />);
+                }
+
+            }
 
 
             // var commentDateFormat = commentDate.getDate() + ' ' + (commentDate.getMonth() + 1) + ' ' + commentDate.getFullYear()
@@ -908,6 +923,9 @@ function EventModal(props) {
                             <div className="col-12">
                                 <p style={{ "wordWrap": "break-word" }}>{comment.comment}</p>
                             </div>
+                            <div className="col-12">
+                                {rateStar}
+                            </div>
                             <div className="col-12 font-weight-light mt-auto">
                                 {commentDate.toString()}
                             </div>
@@ -917,6 +935,16 @@ function EventModal(props) {
                 </div>);
         }
     }
+
+    var conRate = Math.round(totalRate / totalComment);
+    for (let index = 0; index < 5; index++) {
+        if (index < conRate) {
+            totalStar.push(<i key={index} className="fa fa-star text-warning" />);
+        } else {
+            totalStar.push(<i key={index} className="fa fa-star-o" />);
+        }
+    }
+
     // var page = 1;
     return (
         <div className="modal fade" id={props.target} role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -959,7 +987,14 @@ function EventModal(props) {
                                         </div>
 
                                     </div>
-                                    : <button type="button" onClick={props.onClick}>View Detail</button>
+                                    : <div className="form-row">
+                                        <div className="col-8">
+                                            <button type="button" onClick={props.onClick}>View Detail</button>
+                                        </div>
+                                        <div className="col-4">
+                                            {totalStar}
+                                        </div>
+                                    </div>
                             }
                             <hr />
                             {props.page === 1

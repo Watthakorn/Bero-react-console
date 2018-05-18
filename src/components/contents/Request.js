@@ -33,7 +33,7 @@ class Request extends Component {
         this.state = {
             page: 1,
             pagenumber: 1,
-            itemperpage: 3,
+            itemperpage: 6,
         };
     }
 

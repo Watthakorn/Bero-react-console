@@ -3,6 +3,12 @@ import fire from '../../fire';
 import '../../css/bero.css';
 import { connect } from "react-redux";
 
+var allReport = [];
+var reportsRef = fire.database().ref('reports');
+reportsRef.on('child_added', snap => {
+    let report = { id: snap.key, data: snap.val() }
+    allReport.push(report);
+});
 
 class Report extends Component {
 
@@ -15,6 +21,30 @@ class Report extends Component {
     }
 
     componentWillMount() {
+
+        reportsRef.on('child_changed', snap => {
+            let report = { id: snap.key, data: snap.val() }
+            for (let i in allReport) {
+                if (allReport[i].id === report.id) {
+                    allReport[i].data = report.data;
+                    break;
+                }
+            }
+            this.props.addReport(allReport);
+        });
+        reportsRef.on('child_removed', snap => {
+            let remove = snap.key;
+            for (let i in allReport) {
+                if (allReport[i].id === remove) {
+                    allReport.splice(i, 1)
+                    break;
+                }
+            }
+            this.props.addReport(allReport);
+        });
+
+
+        this.props.addReport(allReport);
 
     }
 
@@ -289,6 +319,27 @@ const mapStateToProps = (state) => {
     }
 }
 
+const mapDispatchToProps = (dispatch) => {
+    return {
+        addReport: (reports) => {
+            if (reports) {
+                dispatch({
+                    type: "REPORTS_FETCH",
+                    payload: reports
+                })
+            }
+        },
+        addUsers: (users) => {
+            if (users) {
+                dispatch({
+                    type: "USERS_PROFILE_FETCH",
+                    payload: users
+                })
+            }
+        }
+    }
+}
 
 
-export default connect(mapStateToProps)(Report);
+
+export default connect(mapStateToProps, mapDispatchToProps)(Report);

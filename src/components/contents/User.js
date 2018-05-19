@@ -81,9 +81,11 @@ class User extends Component {
 
     _handleUpgradeToAdmin(e) {
         e.preventDefault();
-        fire.database().ref('users/' + e.target.value + '/Profile').update({
-            type: "Admin",
-        });
+        if (window.confirm("Are you sure?")) {
+            fire.database().ref('users/' + e.target.value + '/Profile').update({
+                type: "Admin",
+            });
+        }
     }
 
     render() {

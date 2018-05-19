@@ -39,6 +39,58 @@ class Request extends Component {
 
 
     componentWillMount() {
+        var requestsProps = this.props.requests.requests
+        var must_be = ["Male", "Female", "all"]
+        var requestMustBe = [0, 0, 0]
+        var type = ["Mechanic", "Medic", "Language", "Computer", "Chef", "Strength", "Any"]
+        var requestType = [0, 0, 0, 0, 0, 0, 0]
+        var when = []
+        var ftolMonth = [];
+        var conMonth = [];
+
+        // var today = new Date();
+
+        for (let index = 0; index < requestsProps.length; index++) {
+            const element = requestsProps[index];
+            if (element.data.must_be === must_be[0]) {
+                requestMustBe[0] += 1;
+            } else if (element.data.must_be === must_be[1]) {
+                requestMustBe[1] += 1;
+            } else {
+                requestMustBe[2] += 1;
+            }
+
+            if (element.data.type === type[0]) {
+                requestType[0] += 1;
+            } else if (element.data.type === type[1]) {
+                requestType[1] += 1;
+            } else if (element.data.type === type[2]) {
+                requestType[2] += 1;
+            } else if (element.data.type === type[3]) {
+                requestType[3] += 1;
+            } else if (element.data.type === type[4]) {
+                requestType[4] += 1;
+            } else if (element.data.type === type[5]) {
+                requestType[5] += 1;
+            } else {
+                requestType[6] += 1;
+            }
+            let requestWhen = new Date(element.data.when);
+            if (ftolMonth.includes((requestWhen.getMonth() + 1) + "," + requestWhen.getFullYear())) {
+                conMonth[ftolMonth.indexOf((requestWhen.getMonth() + 1) + "," + requestWhen.getFullYear())] += 1
+            } else {
+                ftolMonth.push((requestWhen.getMonth() + 1) + "," + requestWhen.getFullYear())
+                conMonth.push(1)
+            }
+            when.push(element.data.when)
+
+            // console.log((new Date(when[index]).toDateString()))
+        }
+        // console.log(when)
+        // console.log(today)
+        // console.log(conMonth.reverse())
+        // console.log(ftolMonth.reverse())
+        // console.log(requestMustBe + " " + requestType)
 
 
         requestsRef.on('child_changed', snap => {
@@ -116,7 +168,7 @@ class Request extends Component {
         return (
             <div>
                 <div className="d-flex justify-content-end">
-                    <h1 className="page-title"><i className="fa fa-child"></i>Current Request</h1>
+                    <h1 className="page-title"><i className="fa fa-child"></i>Request</h1>
                 </div>
                 {/* <input type="text" value={this.state.value} onChange={this.handleChange} /> */}
                 {/* {this.state.value} */}

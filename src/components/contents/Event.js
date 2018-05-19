@@ -105,13 +105,13 @@ class Event extends Component {
     componentWillMount() {
         codesRef.on('child_changed', snap => {
             let code = { id: snap.key, data: snap.val() }
-            console.log(allCode[allCodeKey.indexOf(code.data.event)]);
-            console.log(code.id);
+            // console.log(allCode[allCodeKey.indexOf(code.data.event)]);
+            // console.log(code.id);
             var found = allCode[allCodeKey.indexOf(code.data.event)].findIndex(function (element) {
                 return element[0] === code.id;
             })
             allCode[allCodeKey.indexOf(code.data.event)][found][1] = "activated";
-            console.log(allCode[allCodeKey.indexOf(code.data.event)][found])
+            // console.log(allCode[allCodeKey.indexOf(code.data.event)][found])
         });
 
         requestsRef.on('child_changed', snap => {

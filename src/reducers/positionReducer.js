@@ -1,6 +1,6 @@
 const locationState = {
-    lat: 13.719349,
-    lng: 100.781223
+    lat: 13.7309425,
+    lng: 100.7809674
 }
 
 const positionReducer = (state = locationState, action) => {

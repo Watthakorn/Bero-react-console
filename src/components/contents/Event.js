@@ -7,10 +7,31 @@ import { connect } from "react-redux"
 import GeoFire from "geofire"
 
 
+
 var positionFirst = {
-    lat: 13.719349,
-    lng: 100.781223
+    lat: 13.7309425,
+    lng: 100.7809674
 };
+
+getLocation();
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        // x.innerHTML = "Geolocation is not supported by this browser.";
+    }
+}
+
+function showPosition(position) {
+    positionFirst = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+
+    }
+    // console.log(positionFirst)
+    // console.log(position.coords.longitude + "," + position.coords.latitude);
+}
 var today = new Date();
 var todayDate = today.getFullYear() + '-' + ((today.getMonth() + 1) < 10 ? '0' + (today.getMonth() + 1) : today.getMonth() + 1) + '-' + today.getDate();
 
@@ -43,7 +64,6 @@ var codesRef = fire.database().ref('codes');
 codesRef.on('child_added', snap => {
     let code = { id: snap.key, data: snap.val() }
     // this.setState({ users: [user].concat(this.state.users) });
-    // console.log(snap.val());
     if (allCodeKey.includes(code.data.event)) {
         allCode[allCodeKey.indexOf(code.data.event)].push([code.id, code.data.status]);
     } else {
@@ -83,6 +103,16 @@ class Event extends Component {
     }
 
     componentWillMount() {
+        codesRef.on('child_changed', snap => {
+            let code = { id: snap.key, data: snap.val() }
+            console.log(allCode[allCodeKey.indexOf(code.data.event)]);
+            console.log(code.id);
+            var found = allCode[allCodeKey.indexOf(code.data.event)].findIndex(function (element) {
+                return element[0] === code.id;
+            })
+            allCode[allCodeKey.indexOf(code.data.event)][found][1] = "activated";
+            console.log(allCode[allCodeKey.indexOf(code.data.event)][found])
+        });
 
         requestsRef.on('child_changed', snap => {
             let request = { id: snap.key, data: snap.val() }
@@ -219,7 +249,7 @@ class Event extends Component {
                 var formatStartDate = startDate.getDate() + '/' + (startDate.getMonth() + 1) + '/' + startDate.getFullYear();
                 var formatEndDate = endDate.getDate() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getFullYear();
 
-                var tags = state.tag.split(",");
+                // var tags = state.tag.split(",");
 
                 //database push HERE
                 databaseRef.child(newEventKey).set({
@@ -238,7 +268,7 @@ class Event extends Component {
                     ownerprofilePicture: "http://graph.facebook.com/" + props.user.user.providerData[0].uid + "/picture?type=square",
                     ownerUid: props.user.user.uid,
                     rated: 0,
-                    tag: tags,
+                    // tag: tags,
                     requestType: 'Event',
                     timeEvent: formatStartDate + '-' + formatEndDate,
                     startDate: state.startDate,
@@ -328,7 +358,7 @@ class Event extends Component {
             progressBar: '',
             disabled: false,
             showCreate: true,
-            tag: '',
+            // tag: '',
             shortName: '',
             location: '',
         })
@@ -378,7 +408,7 @@ class Event extends Component {
         var formatDate = '';
         var start = '';
         var end = '';
-        var tags = e.target.tag.value.split(",")
+        // var tags = e.target.tag.value.split(",")
         if (e.target.startDate && e.target.endDate) {
             var startDate = new Date(e.target.startDate.value);
             var endDate;
@@ -404,7 +434,7 @@ class Event extends Component {
         if (e.target.id === this.state.currentId) {
             fire.database().ref('requests/' + e.target.id).update({
                 topic: e.target.eventName.value,
-                tag: tags,
+                // tag: tags,
                 detail: e.target.detail.value,
                 startDate: start,
                 endDate: end,
@@ -419,7 +449,7 @@ class Event extends Component {
         else {
             fire.database().ref('requests/' + e.target.id).update({
                 topic: e.target.eventName.value,
-                tag: tags,
+                // tag: tags,
                 detail: e.target.detail.value,
                 startDate: start,
                 endDate: end,
@@ -430,7 +460,7 @@ class Event extends Component {
 
         e.target.submitBtn.disabled = "disabled";
         e.target.eventName.disabled = "disabled";
-        e.target.tag.disabled = "disabled";
+        // e.target.tag.disabled = "disabled";
         e.target.detail.disabled = "disabled";
         e.target.location.disabled = "disabled";
         if (e.target.startDate && e.target.endDate) {
@@ -538,7 +568,7 @@ class Event extends Component {
                                         <div className="form-group col-lg-6">
                                             {/* eventName & participant */}
                                             <div className="form-row">
-                                                <div className="form-group col-sm-8">
+                                                <div className="form-group col-sm-12">
                                                     <label htmlFor="eventName">Event Name</label>
                                                     <input type="text"
                                                         className="form-control"
@@ -549,7 +579,36 @@ class Event extends Component {
                                                         required
                                                     />
                                                 </div>
-                                                <div className="form-group col-sm-4">
+                                                {/* <div className="form-group col-sm-4">
+                                                    <label htmlFor="shortName">Code*</label>
+                                                    <input type="text"
+                                                        className="form-control"
+                                                        name="shortName"
+                                                        value={this.state.shortName}
+                                                        onChange={(e) => this._handleInputChange(e)}
+                                                        disabled={(this.state.disabled) ? "disabled" : ""}
+                                                        maxLength='3'
+                                                        required
+                                                    // disabled="disabled"
+                                                    />
+                                                </div> */}
+                                            </div>
+                                            <div className="form-row">
+                                                {/* <div className="form-group col-sm-8">
+                                                    <label htmlFor="tag">Tag
+                                        <a className="text-danger font-weight-light font-italic col-12" style={{ color: "red", fontSize: "10px" }}>use comma "," for additional tag</a>
+                                                    </label>
+                                                    <input type="text"
+                                                        className="form-control"
+                                                        name="tag"
+                                                        value={this.state.tag}
+                                                        onChange={(e) => this._handleInputChange(e)}
+                                                        disabled={(this.state.disabled) ? "disabled" : ""}
+                                                        required
+                                                    />
+                                                </div> */}
+
+                                                <div className="form-group col-sm-6">
                                                     <label htmlFor="shortName">Code*</label>
                                                     <input type="text"
                                                         className="form-control"
@@ -562,22 +621,9 @@ class Event extends Component {
                                                     // disabled="disabled"
                                                     />
                                                 </div>
-                                            </div>
-                                            <div className="form-row">
-                                                <div className="form-group col-sm-8">
-                                                    <label htmlFor="tag">Tag
-                                        <a className="text-danger font-weight-light font-italic col-12" style={{ color: "red", fontSize: "10px" }}>use comma "," for additional tag</a>
-                                                    </label>
-                                                    <input type="text"
-                                                        className="form-control"
-                                                        name="tag"
-                                                        value={this.state.tag}
-                                                        onChange={(e) => this._handleInputChange(e)}
-                                                        disabled={(this.state.disabled) ? "disabled" : ""}
-                                                        required
-                                                    />
-                                                </div>
-                                                <div className="form-group col-sm-4">
+
+
+                                                <div className="form-group col-sm-6">
                                                     <label htmlFor="participant">Participant</label>
                                                     <input type="number"
                                                         className="form-control"
@@ -1014,7 +1060,7 @@ function EventModal(props) {
                                         <div className="form-group col-lg-6">
                                             {/* eventName & participant */}
                                             <div className="form-row">
-                                                <div className="form-group col-sm-12">
+                                                <div className="form-group col-sm-8">
                                                     <label htmlFor="eventName">Event Name</label>
                                                     <input type="text"
                                                         className="form-control"
@@ -1025,7 +1071,7 @@ function EventModal(props) {
                                                     // disabled="disabled"
                                                     />
                                                 </div>
-                                            </div>
+                                                {/* </div>
                                             <div className="form-row">
                                                 <div className="form-group col-sm-8">
                                                     <label htmlFor="tag">Tag
@@ -1039,7 +1085,7 @@ function EventModal(props) {
                                                         disabled={props.event.data.status === "done" ? "disabled" : ""}
                                                     // disabled="disabled"
                                                     />
-                                                </div>
+                                                </div> */}
                                                 <div className="form-group col-sm-4">
                                                     <label htmlFor="participant">Participant</label>
                                                     <input type="number"
@@ -1105,7 +1151,7 @@ function EventModal(props) {
                                                 <textarea className="form-control"
                                                     name="detail"
                                                     defaultValue={props.event.data.detail}
-                                                    style={{ minHeight: '190px' }}
+                                                    style={{ minHeight: '270px' }}
 
                                                     disabled={props.event.data.status === "done" ? "disabled" : ""}
                                                 // disabled="disabled"

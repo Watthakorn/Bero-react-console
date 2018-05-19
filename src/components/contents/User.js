@@ -60,9 +60,9 @@ class User extends Component {
     _handleSaveChange(e) {
         e.preventDefault();
         // var userId = e.target.value;
-        // console.log(e.target.id);
+        // console.log(e.target.score.value);
         fire.database().ref('users/' + e.target.id + '/Profile').update({
-            point: e.target.score.value,
+            point: +e.target.score.value,
         });
         // this.props.updateUser(e.target.id, e.target.score.value);
         // console.log("hey wake up!");
@@ -255,19 +255,21 @@ function UserModal(props) {
                                         <p style={{ "wordWrap": "break-word" }}>Name: {props.profile.displayName}</p>
                                     </div>
                                     <div className="col-12 font-weight-light mt-auto">
-                                        Skill: {props.profile.skill}
+                                        Skill: {(props.profile.skills).join(",")}
                                     </div>
                                 </div>
                             </div>
                             <hr />
                             <div className="col-12 row d-flex align-items-center">
-                                <div className="col-6">Current Request: {props.profile.requestCreate}</div>
-                                <div className="col-6">Status: {props.profile.statusCreate}</div>
+                                <div className="col-6">Current Reques</div>
+                                <div className="col-6">{props.profile.requestCreate}</div>
+                                {/* <div className="col-6">Status: {props.profile.statusCreate}</div> */}
                             </div>
                             <hr />
                             <div className="col-12 row d-flex align-items-center">
-                                <div className="col-6">Response Request: {props.profile.requestAccepted}</div>
-                                <div className="col-6">Status: {props.profile.statusRequest}</div>
+                                <div className="col-6">Response Request</div>
+                                <div className="col-6">{props.profile.requestAccepted}</div>
+                                {/* <div className="col-6">Status: {props.profile.statusRequest}</div> */}
                             </div>
 
 

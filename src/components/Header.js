@@ -6,13 +6,13 @@ import { connect } from "react-redux";
 // var allReportKey = []
 var allReport = [];
 var reportsRef = fire.database().ref('reports');
-reportsRef.on('child_added', snap => {
-    let report = { id: snap.key, data: snap.val() }
-    // this.setState({ users: [user].concat(this.state.users) });
-    // console.log(snap.val());
-    // allReportKey.push(report.id)
-    allReport.push(report);
-});
+// reportsRef.on('child_added', snap => {
+//     let report = { id: snap.key, data: snap.val() }
+//     // this.setState({ users: [user].concat(this.state.users) });
+//     // console.log(snap.val());
+//     // allReportKey.push(report.id)
+//     allReport.push(report);
+// });
 
 var allUser = [];
 var usersRef = fire.database().ref('users');
@@ -26,6 +26,14 @@ usersRef.on('child_added', snap => {
 class Header extends Component {
 
     componentWillMount() {
+        reportsRef.on('child_added', snap => {
+            let report = { id: snap.key, data: snap.val() }
+            // this.setState({ users: [user].concat(this.state.users) });
+            // console.log(snap.val());
+            // allReportKey.push(report.id)
+            allReport.push(report);
+            this.props.addReport(allReport);
+        });
 
         reportsRef.on('child_changed', snap => {
             let report = { id: snap.key, data: snap.val() }

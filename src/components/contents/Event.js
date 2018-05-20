@@ -997,7 +997,7 @@ function EventModal(props) {
             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
                 <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title" id="exampleModalLongTitle">Event: {props.eventNo}</h5>
+                        <h5 className="modal-title" id="exampleModalLongTitle">Event ID: {props.event.id}</h5>
                         <button type="button" className="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>

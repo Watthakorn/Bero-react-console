@@ -263,13 +263,13 @@ function UserModal(props) {
                             </div>
                             <hr />
                             <div className="col-12 row d-flex align-items-center">
-                                <div className="col-6">Current Reques</div>
+                                <div className="col-6">Lastest Request</div>
                                 <div className="col-6">{props.profile.requestCreate}</div>
                                 {/* <div className="col-6">Status: {props.profile.statusCreate}</div> */}
                             </div>
                             <hr />
                             <div className="col-12 row d-flex align-items-center">
-                                <div className="col-6">Response Request</div>
+                                <div className="col-6"> Lastest Response</div>
                                 <div className="col-6">{props.profile.requestAccepted}</div>
                                 {/* <div className="col-6">Status: {props.profile.statusRequest}</div> */}
                             </div>

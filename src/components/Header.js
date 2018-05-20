@@ -192,7 +192,7 @@ function ReportModal(props) {
             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
                 <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title" id="exampleModalLongTitle">Report: {props.report.data.title}</h5>
+                        <h5 className="modal-title" id="exampleModalLongTitle">Report ID: {props.report.id}</h5>
                         <button type="button" className="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -211,14 +211,14 @@ function ReportModal(props) {
                                     </div>
                                     : ''}
                             </div>
-                            {/* {target.Profile ?
+                            {owner.Profile ?
                                 <div>
                                     <br />
                                     <div className="col-12 row d-flex align-items-center">
                                         <div className="col-6"></div>
-                                        <div className="col-6">Target: <input className="form-control" value={target.Profile.displayName} disabled="disabled" /></div>
+                                        <div className="col-6">Facebook ID: <input className="form-control" value={owner.Profile.facebookUid} disabled="disabled" /></div>
                                     </div>
-                                </div> : ''} */}
+                                </div> : ''}
                             <br />
                             <div className="col-12 row d-flex align-items-center">
                                 <div className="col-12">Detail:

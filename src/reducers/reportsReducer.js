@@ -4,12 +4,6 @@ const INITIAL_STATE = {
 
 const reports = (state = INITIAL_STATE, action) => {
     switch (action.type) {
-        // case "USERS_PROFILE_UPDATE":
-        //     state = {
-        //         ...state,
-        //         users: state.users
-        //     }
-        //     break;
         case "REPORTS_FETCH":
             state = {
                 ...state,

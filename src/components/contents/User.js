@@ -4,14 +4,6 @@ import '../../css/bero.css';
 import { connect } from "react-redux";
 
 
-// var allUser = [];
-// var usersRef = fire.database().ref('users');
-// usersRef.on('child_added', snap => {
-//     let user = { id: snap.key, data: snap.val() }
-//     // this.setState({ users: [user].concat(this.state.users) });
-//     // console.log(snap.val());
-//     allUser.push(user);
-// });
 
 class User extends Component {
 
@@ -28,8 +20,6 @@ class User extends Component {
         var usersRef = fire.database().ref('users');
         usersRef.on('child_added', snap => {
             let user = { id: snap.key, data: snap.val() }
-            // this.setState({ users: [user].concat(this.state.users) });
-            // console.log(snap.val());
             allUser.push(user);
         });
         usersRef.on('child_changed', snap => {
@@ -54,18 +44,13 @@ class User extends Component {
         });
 
         this.props.addUsers(allUser);
-        // console.log(allUser);
     }
 
     _handleSaveChange(e) {
         e.preventDefault();
-        // var userId = e.target.value;
-        // console.log(e.target.score.value);
         fire.database().ref('users/' + e.target.id + '/Profile').update({
             point: +e.target.score.value,
         });
-        // this.props.updateUser(e.target.id, e.target.score.value);
-        // console.log("hey wake up!");
         e.target.score.disabled = "disabled";
         e.target.submitBtn.disabled = "disabled";
     }
@@ -75,7 +60,6 @@ class User extends Component {
         this.setState({
             pagenumber: e.target.value,
         })
-        // console.log(e.target.value)
     }
 
 
@@ -92,7 +76,6 @@ class User extends Component {
 
         const props = this.props;
         const users = props.users.users;
-        // console.log(users);
         return (
             <div>
                 <div className="d-flex justify-content-end">
@@ -167,10 +150,6 @@ function UserRows(props) {
                 }
             }
         }
-        // for (let index = 0; index < allUser.length; index++) {
-        //     let user = allUser[index];
-        //     userrows.push(<UserRow key={user.id} user={user} profile={user.data.Profile} target={"#" + user.id} displayName={user.data.Profile.displayName} />);
-        // }
     }
     return userrows;
 
@@ -215,11 +194,6 @@ function UserModals(props) {
                 }
             }
         }
-
-        // for (let index = 0; index < allUser.length; index++) {
-        //     let user = allUser[index];
-        //     usermodals.push(<UserModal key={user.id} user={user} profile={user.data.Profile} target={user.id} onSubmit={props.onSubmit} />);
-        // }
     }
     return usermodals;
 
@@ -239,14 +213,6 @@ function UserModal(props) {
                     <form id={props.user.id} onSubmit={props.onSubmit}>
                         <div className="modal-body">
                             <div className="row col-12">
-                                {/* <div className="col-md-4 col-lg-2">
-                                    <img className="border border-primary rounded" src={props.profile.profilePicture} style={{ width: "75px", height: "75px" }} />
-                                </div>
-                                <div className="col-md-8 col-lg-10">
-                                    <br />
-                                    <div className="col-12">Name: {props.profile.displayName}</div>
-                                    <div className="col-12">Skill: {props.profile.skill}</div>
-                                </div> */}
                                 <div className="col-2">
                                     <div className="col-12">
                                         <img alt="profilePic" src={props.profile.profilePicture} style={{ "height": "75px", "width": "75px" }} className="border border-primary rounded" />
@@ -265,13 +231,11 @@ function UserModal(props) {
                             <div className="col-12 row d-flex align-items-center">
                                 <div className="col-6">Lastest Request</div>
                                 <div className="col-6">{props.profile.requestCreate}</div>
-                                {/* <div className="col-6">Status: {props.profile.statusCreate}</div> */}
                             </div>
                             <hr />
                             <div className="col-12 row d-flex align-items-center">
                                 <div className="col-6"> Lastest Response</div>
                                 <div className="col-6">{props.profile.requestAccepted}</div>
-                                {/* <div className="col-6">Status: {props.profile.statusRequest}</div> */}
                             </div>
 
 

@@ -17,9 +17,11 @@ class FirstPage extends Component {
         return (
             <div>
                 {user ? user.type === "Admin"
-                    ? <h1>Welcome! {user.displayName}</h1>
+                    ? ''
+                    // <h1>Welcome! {user.displayName}</h1>
                     : <h1>Permission denied! You're not Admin.</h1>
-                    : <h1>You're not login.</h1>
+                    : ''
+                    // <h1> You're not login.</h1>
                 }
             </div>
         );

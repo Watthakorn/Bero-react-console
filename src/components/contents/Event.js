@@ -19,7 +19,6 @@ function getLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(showPosition);
     } else {
-        // x.innerHTML = "Geolocation is not supported by this browser.";
     }
 }
 
@@ -29,30 +28,22 @@ function showPosition(position) {
         lng: position.coords.longitude
 
     }
-    // console.log(positionFirst)
-    // console.log(position.coords.longitude + "," + position.coords.latitude);
 }
 var today = new Date();
 var todayDate = today.getFullYear() + '-' + ((today.getMonth() + 1) < 10 ? '0' + (today.getMonth() + 1) : today.getMonth() + 1) + '-' + today.getDate();
 
 var allEvent = [];
-// var allRequest = [];
 var requestsRef = fire.database().ref('requests');
 requestsRef.on('child_added', snap => {
     let request = { id: snap.key, data: snap.val() }
-    // this.setState({ users: [user].concat(this.state.users) });
-    // console.log(snap.val());
     if (request.data.requestType === 'Event') {
         if (new Date(request.data.endDate).getTime() + 86400000 < new Date().getTime() && request.data.status === "in-progress") {
-            // console.log(new Date(request.data.endDate).getTime() + " " + new Date().getTime())
-            // console.log(new Date(request.data.endDate))
             fire.database().ref('requests/' + request.id).update({
                 status: "done"
             });
         }
         allEvent.push(request);
     } else {
-        // allRequest.push(request)
     }
 });
 
@@ -63,7 +54,6 @@ var allCode = [];
 var codesRef = fire.database().ref('codes');
 codesRef.on('child_added', snap => {
     let code = { id: snap.key, data: snap.val() }
-    // this.setState({ users: [user].concat(this.state.users) });
     if (allCodeKey.includes(code.data.event)) {
         allCode[allCodeKey.indexOf(code.data.event)].push([code.id, code.data.status]);
     } else {
@@ -105,13 +95,10 @@ class Event extends Component {
     componentWillMount() {
         codesRef.on('child_changed', snap => {
             let code = { id: snap.key, data: snap.val() }
-            // console.log(allCode[allCodeKey.indexOf(code.data.event)]);
-            // console.log(code.id);
             var found = allCode[allCodeKey.indexOf(code.data.event)].findIndex(function (element) {
                 return element[0] === code.id;
             })
             allCode[allCodeKey.indexOf(code.data.event)][found][1] = "activated";
-            // console.log(allCode[allCodeKey.indexOf(code.data.event)][found])
         });
 
         requestsRef.on('child_changed', snap => {
@@ -125,13 +112,6 @@ class Event extends Component {
                 }
                 this.props.addEvent(allEvent);
             } else {
-                // for (let i in allRequest) {
-                //     if (allRequest[i].id === request.id) {
-                //         allRequest[i].data = request.data;
-                //         break;
-                //     }
-                // }
-                // this.props.addRequest(allRequest);
             }
         });
         requestsRef.on('child_removed', snap => {
@@ -145,22 +125,12 @@ class Event extends Component {
                 }
                 this.props.addEvent(allEvent);
             } else {
-                // for (let i in allRequest) {
-                //     if (allRequest[i].id === request.id) {
-                //         allRequest.splice(i, 1)
-                //         break;
-                //     }
-                // }
-                // this.props.addRequest(allRequest);
             }
         });
 
 
 
         this.props.addEvent(allEvent);
-        // this.props.addRequest(allRequest);
-
-        // console.log(this.props.events.events);
 
     }
 
@@ -174,11 +144,6 @@ class Event extends Component {
         this.setState({
             [name]: value
         });
-
-        // console.log(this.props.user.user.providerData[0].uid)
-        // console.log((new Date('2018-02-01')).getDate())
-        // console.log(this.state.startDate)
-        // console.log(this.state[name]);
     }
 
 
@@ -186,10 +151,8 @@ class Event extends Component {
 
     _handleSubmit(e) {
         e.preventDefault();
-        // console.log(e.target);
 
 
-        // TODO: do something with -> this.state.file
         var thisState = this;
         var state = this.state;
         var props = this.props;
@@ -199,10 +162,8 @@ class Event extends Component {
         var imageRef = eventRef.child(fileName);
         var markerPosition = props.markerPosition;
         var databaseRef = fire.database().ref('requests');
-        // var codeRef = fire.database().ref('codes');
         var newEventKey = databaseRef.push().key;
         var geoFire = new GeoFire(fire.database().ref('geofire'));
-        // console.log(newEventKey)
 
         imageRef.getDownloadURL().then(onResolve, onReject);
 
@@ -228,11 +189,9 @@ class Event extends Component {
                 // Observe state change events such as progress, pause, and resume
                 // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
                 var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                // console.log('Upload is ' + progress + '% done');
                 thisState.setState({
                     progressBar: progress + "%"
                 });
-                // console.log(state.progressText)
 
 
             }, function (error) {
@@ -241,15 +200,11 @@ class Event extends Component {
                 // Handle successful uploads on complete
                 // For instance, get the download URL: https://firebasestorage.googleapis.com/...
                 downloadURL = uploadTask.snapshot.downloadURL;
-                // console.log(downloadURL);
-                // console.log(markerPosition);
                 var startDate = new Date(state.startDate);
                 var endDate = new Date(state.endDate);
 
                 var formatStartDate = startDate.getDate() + '/' + (startDate.getMonth() + 1) + '/' + startDate.getFullYear();
                 var formatEndDate = endDate.getDate() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getFullYear();
-
-                // var tags = state.tag.split(",");
 
                 //database push HERE
                 databaseRef.child(newEventKey).set({
@@ -268,7 +223,6 @@ class Event extends Component {
                     ownerprofilePicture: "http://graph.facebook.com/" + props.user.user.providerData[0].uid + "/picture?type=square",
                     ownerUid: props.user.user.uid,
                     rated: 0,
-                    // tag: tags,
                     requestType: 'Event',
                     timeEvent: formatStartDate + '-' + formatEndDate,
                     startDate: state.startDate,
@@ -297,11 +251,6 @@ class Event extends Component {
 
 
 
-        // console.log(markerPosition);
-        // console.log('handle uploading-', state.file);
-        // console.log(state);
-
-
     }
 
 
@@ -309,9 +258,7 @@ class Event extends Component {
 
 
     _handleImageChange(e) {
-        // console.log(e.target.files);
         e.preventDefault();
-        // console.log(e.target);
 
         let reader = new FileReader();
         let file = e.target.files[0];
@@ -325,23 +272,6 @@ class Event extends Component {
 
         reader.readAsDataURL(file)
     }
-    // _handleDone(event) {
-    //     event.preventDefault();
-
-    //     this.setState = {
-    //         file: '',
-    //         imagePreviewUrl: 'no-img.png',
-    //         eventName: '',
-    //         participant: 10,
-    //         startDate: '',
-    //         endDate: '',
-    //         detail: '',
-    //         showModal: true,
-    //         progressBar: '',
-    //         disabled: false,
-    //         showCreate: true
-    //     };
-    // }
 
     _handleOnClear(e) {
         e.preventDefault();
@@ -358,7 +288,6 @@ class Event extends Component {
             progressBar: '',
             disabled: false,
             showCreate: true,
-            // tag: '',
             shortName: '',
             location: '',
         })
@@ -403,12 +332,11 @@ class Event extends Component {
 
     _handleSaveChange(e) {
         e.preventDefault();
-        // var userId = e.target.value;
-        // console.log(e.target.id);
         var formatDate = '';
         var start = '';
         var end = '';
-        // var tags = e.target.tag.value.split(",")
+        var geoFire = new GeoFire(fire.database().ref('geofire'));
+
         if (e.target.startDate && e.target.endDate) {
             var startDate = new Date(e.target.startDate.value);
             var endDate;
@@ -434,7 +362,6 @@ class Event extends Component {
         if (e.target.id === this.state.currentId) {
             fire.database().ref('requests/' + e.target.id).update({
                 topic: e.target.eventName.value,
-                // tag: tags,
                 detail: e.target.detail.value,
                 startDate: start,
                 endDate: end,
@@ -445,11 +372,12 @@ class Event extends Component {
                     longitude: this.state.changeMarker.lng
                 },
             });
+
+            geoFire.set(e.target.id, [this.state.changeMarker.lat, this.state.changeMarker.lng])
         }
         else {
             fire.database().ref('requests/' + e.target.id).update({
                 topic: e.target.eventName.value,
-                // tag: tags,
                 detail: e.target.detail.value,
                 startDate: start,
                 endDate: end,
@@ -460,15 +388,12 @@ class Event extends Component {
 
         e.target.submitBtn.disabled = "disabled";
         e.target.eventName.disabled = "disabled";
-        // e.target.tag.disabled = "disabled";
         e.target.detail.disabled = "disabled";
         e.target.location.disabled = "disabled";
         if (e.target.startDate && e.target.endDate) {
             e.target.startDate.disabled = "disabled";
             e.target.endDate.disabled = "disabled";
         }
-        // alert("Your changes have been saved\n\nPlease refresh page to see your changes");
-        // console.log("hey wake up!");
     }
 
     _copyToClipboard(e) {
@@ -492,7 +417,6 @@ class Event extends Component {
         this.setState({
             pagenumber: e.target.value,
         })
-        // console.log(e.target.value)
     }
 
     render() {
@@ -505,19 +429,14 @@ class Event extends Component {
                     </div>
                     <h1 className="page-title"><i className="fa fa-gears"></i> Manage</h1>
                 </div>
-                {/* <input type="text" value={this.state.value} onChange={this.handleChange} /> */}
-                {/* {this.state.value} */}
-                {/* slide */}
-                {/* <Slide testvalue="Testtteetetetet" /> */}
 
 
-                {/* card */}
 
                 <ul className="pagination">
                     <Page page={Math.ceil(allEvent.length / this.state.itemperpage)} pagenumber={this.state.pagenumber} onClick={(e) => this._handlePagination(e)} />
                 </ul>
 
-                {/* {JSON.stringify(allCode[0])} */}
+                {/* card */}
                 <div className="row">
                     <EventCards events={allEvent} pagenumber={this.state.pagenumber} itemperpage={this.state.itemperpage} />
                 </div>
@@ -535,10 +454,6 @@ class Event extends Component {
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-
-
-
-
                             {/* <!-- Form --> */}
                             <form onSubmit={(e) => this._handleSubmit(e)} id="createEvent" >
                                 <div className="modal-body">
@@ -579,34 +494,9 @@ class Event extends Component {
                                                         required
                                                     />
                                                 </div>
-                                                {/* <div className="form-group col-sm-4">
-                                                    <label htmlFor="shortName">Code*</label>
-                                                    <input type="text"
-                                                        className="form-control"
-                                                        name="shortName"
-                                                        value={this.state.shortName}
-                                                        onChange={(e) => this._handleInputChange(e)}
-                                                        disabled={(this.state.disabled) ? "disabled" : ""}
-                                                        maxLength='3'
-                                                        required
-                                                    // disabled="disabled"
-                                                    />
-                                                </div> */}
                                             </div>
                                             <div className="form-row">
-                                                {/* <div className="form-group col-sm-8">
-                                                    <label htmlFor="tag">Tag
-                                        <a className="text-danger font-weight-light font-italic col-12" style={{ color: "red", fontSize: "10px" }}>use comma "," for additional tag</a>
-                                                    </label>
-                                                    <input type="text"
-                                                        className="form-control"
-                                                        name="tag"
-                                                        value={this.state.tag}
-                                                        onChange={(e) => this._handleInputChange(e)}
-                                                        disabled={(this.state.disabled) ? "disabled" : ""}
-                                                        required
-                                                    />
-                                                </div> */}
+
 
                                                 <div className="form-group col-sm-6">
                                                     <label htmlFor="shortName">Code*</label>
@@ -635,9 +525,6 @@ class Event extends Component {
                                                     />
                                                 </div>
                                             </div>
-
-
-                                            {/* <!-- if datepicker not work will use datepicker.js instead --> */}
 
 
                                             {/* startDate & endDate */}
@@ -789,7 +676,6 @@ function EventCards(props) {
 
     var eventcards = [];
     var allEvent = props.events;
-    // console.log(allEvent)
     var eventlength = allEvent.length;
     var page = props.pagenumber;
     var itemperpage = props.itemperpage;
@@ -800,7 +686,6 @@ function EventCards(props) {
     allEvent.sort(function (a, b) { return (b.data.status > a.data.status) ? 1 : ((a.data.status > b.data.status) ? -1 : 0); });
     if (allEvent) {
         if (page >= lastpage && eventlength % itemperpage !== 0) {
-            // console.log(eventlength % itemperpage)
             for (let index = 0; index < eventlength % itemperpage; index++) {
                 let event = allEvent[index + (itemperpage * (page - 1))];
                 if (event) {
@@ -815,10 +700,6 @@ function EventCards(props) {
                 }
             }
         }
-        // for (let index = 0; index < eventlength; index++) {
-        //     let event = allEvent[index];
-        //     eventcards.push(<EventCard key={event.id} event={event} eventNo={index + 1} target={"#" + event.id} />);
-        // }
     }
     return eventcards;
 }
@@ -850,15 +731,12 @@ function EventModals(props) {
     var eventmodals = [];
 
     var allEvent = props.events;
-    // console.log(allEvent)
-    // console.log(props.events)
     var eventlength = allEvent.length;
     var page = props.pagenumber;
     var itemperpage = props.itemperpage;
     var lastpage = Math.ceil(eventlength / itemperpage);
     if (allEvent) {
         if (page >= lastpage && eventlength % itemperpage !== 0) {
-            // console.log(eventlength % itemperpage)
             for (let index = 0; index < eventlength % itemperpage; index++) {
                 let event = allEvent[index + (itemperpage * (page - 1))];
                 if (event) {
@@ -879,12 +757,6 @@ function EventModals(props) {
 
         }
     }
-    // for (let index = 0; index < eventlength; index++) {
-    //     let event = allEvent[index];
-    //     eventmodals.push(<EventModal key={event.id} event={event} page={props.page} onSubmit={props.onSubmit}
-    //         eventNo={index + 1} target={event.id} infostate={props.infostate}
-    //         onClick={props.onPageClick} onClick2={props.onPageClick2} onCopy={props.onClickCopy} />);
-    // }
     return eventmodals;
 }
 function EventModal(props) {
@@ -922,7 +794,6 @@ function EventModal(props) {
             } else {
                 codeActivate.push(code[0]);
             }
-            // console.log(codeString)
         }
     }
     var commentView = [];
@@ -936,7 +807,6 @@ function EventModal(props) {
         for (let index = 0; index < totalComment; index++) {
             let commentKey = commentsKey[index]
             let comment = comments[commentKey];
-            // console.log(comment);
             var commentDate = new Date(comment.when);
             var rateStar = [];
             totalRate += comment.rate;
@@ -949,11 +819,6 @@ function EventModal(props) {
                 }
 
             }
-
-
-            // var commentDateFormat = commentDate.getDate() + ' ' + (commentDate.getMonth() + 1) + ' ' + commentDate.getFullYear()
-            //     + ' ' + commentDate.getHours() + ':' + commentDate.getMinutes();
-            // console.log(commentDate)
             commentView.push(
                 <div key={commentKey}>
                     <div className="row">
@@ -991,7 +856,6 @@ function EventModal(props) {
         }
     }
 
-    // var page = 1;
     return (
         <div className="modal fade" id={props.target} role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -1051,7 +915,6 @@ function EventModal(props) {
                                                 src={props.event.data.imageUrl}
                                                 className="mx-auto d-block"
                                                 alt="eventImg"
-                                            // style={{ maxHeight: '300px' }}
                                             />
                                         </div>
                                     </div>
@@ -1071,21 +934,6 @@ function EventModal(props) {
                                                     // disabled="disabled"
                                                     />
                                                 </div>
-                                                {/* </div>
-                                            <div className="form-row">
-                                                <div className="form-group col-sm-8">
-                                                    <label htmlFor="tag">Tag
-                                        <a className="text-danger font-weight-light font-italic col-12" style={{ color: "red", fontSize: "10px" }}>use comma "," for additional tag</a>
-                                                    </label>
-                                                    <input type="text"
-                                                        className="form-control"
-                                                        name="tag"
-                                                        defaultValue={props.event.data.tag}
-
-                                                        disabled={props.event.data.status === "done" ? "disabled" : ""}
-                                                    // disabled="disabled"
-                                                    />
-                                                </div> */}
                                                 <div className="form-group col-sm-4">
                                                     <label htmlFor="participant">Participant</label>
                                                     <input type="number"
@@ -1227,9 +1075,6 @@ const MyMapComponent2 = compose(
                 onPositionChanged: () => {
                     const position = refs.marker.getPosition();
                     const infostate = refs.marker.props.infostate;
-                    // console.log(refs.marker.props.information.id);
-                    // console.log(position.lat())
-                    // console.log(refs.marker.props.infostate)
                     infostate.setState({
                         currentId: refs.marker.props.information.id,
                         changeMarker: {
@@ -1237,7 +1082,6 @@ const MyMapComponent2 = compose(
                             lng: position.lng()
                         }
                     })
-                    // console.log(infostate.state)
                 }
             })
 
@@ -1306,7 +1150,6 @@ const MyMapComponent = compose(
 
                 onPositionChanged: () => {
                     const position = refs.marker.getPosition();
-                    // console.log(position.toString());
                     positionFirst = {
                         lat: position.lat(),
                         lng: position.lng()
@@ -1314,9 +1157,6 @@ const MyMapComponent = compose(
 
                     this.props.mapProps.changePosition(positionFirst);
 
-
-                    // console.log(this.props.mapProps.markerPosition);
-                    // console.log(positionFirst);
                 }
             })
 
@@ -1353,7 +1193,6 @@ const MyMapComponent = compose(
 
 const mapStateToProps = (state) => {
 
-    // console.log(state)
     return {
         markerPosition: state.positionReducer,
         events: state.eventsReducer,

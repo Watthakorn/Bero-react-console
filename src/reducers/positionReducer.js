@@ -12,12 +12,6 @@ const positionReducer = (state = locationState, action) => {
                 lng: action.payload.lng
             }
             break;
-        // case "SUB":
-        //     state = {
-        //         ...state,
-        //         result: state.result -= action.payload
-        //     }
-        //     break;
         default:
     }
     return state;

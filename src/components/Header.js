@@ -3,23 +3,13 @@ import { Link } from "react-router-dom";
 import fire from "../fire"
 import { connect } from "react-redux";
 
-// var allReportKey = []
 var allReport = [];
 var reportsRef = fire.database().ref('reports');
-// reportsRef.on('child_added', snap => {
-//     let report = { id: snap.key, data: snap.val() }
-//     // this.setState({ users: [user].concat(this.state.users) });
-//     // console.log(snap.val());
-//     // allReportKey.push(report.id)
-//     allReport.push(report);
-// });
 
 var allUser = [];
 var usersRef = fire.database().ref('users');
 usersRef.on('child_added', snap => {
     let user = { id: snap.key, data: snap.val() }
-    // this.setState({ users: [user].concat(this.state.users) });
-    // console.log(snap.val());
     allUser.push(user);
 });
 
@@ -28,9 +18,6 @@ class Header extends Component {
     componentWillMount() {
         reportsRef.on('child_added', snap => {
             let report = { id: snap.key, data: snap.val() }
-            // this.setState({ users: [user].concat(this.state.users) });
-            // console.log(snap.val());
-            // allReportKey.push(report.id)
             allReport.push(report);
             this.props.addReport(allReport);
         });
@@ -64,11 +51,9 @@ class Header extends Component {
 
     _handleSave(e) {
         e.preventDefault();
-        // console.log(e.target.id);
         fire.database().ref('reports/' + e.target.id).update({
             status: "done",
         });
-        // console.log("hey wake up!");
         e.target.submitBtn.disabled = "disabled";
     }
 
@@ -86,7 +71,6 @@ class Header extends Component {
                         </div>
 
                         <div className="navbar col-2 col-sm-2 col-md-3 top-title bg-light">
-                            {/* <a id="topTitle" className="navbar-brand text-dark"></a> */}
                         </div>
 
                         <div className="nav col-6 col-sm-7 col-md-7 top-title bg-light d-flex justify-content-end">
@@ -142,7 +126,7 @@ function ReportNoti(props) {
             let report = allReport[index];
             if (report.data.status === "inprogress") {
                 reportcards.push(<div key={report.id}>
-                    <button className="dropdown-item" type="button" data-toggle="modal" data-target={"#" + report.id}><i className="fa fa-file-text-o" /> {report.data.title}
+                    <button className="dropdown-item noti-overflow" type="button" data-toggle="modal" data-target={"#" + report.id}><i className="fa fa-file-text-o" /> {report.data.title}
                         <div className="col-12 font-weight-light d-flex justify-content-end" style={{ paddingTop: "1px", fontSize: "12px" }}>
                             {Math.floor((Date.now() - report.data.when) / 3600000) + ' hr ' +
                                 Math.floor((((Date.now() - report.data.when) / 3600000) % 1) * 60) + ' min ago'}
@@ -170,7 +154,6 @@ function ReportModals(props) {
 }
 
 function ReportModal(props) {
-    // var target = [];
     var owner = [];
     if (props.report.data.owner) {
         var ownerRef = fire.database().ref('users/' + props.report.data.owner);
@@ -178,13 +161,6 @@ function ReportModal(props) {
             owner = snapshot.val();
         });
     }
-    // if (props.report.data.target) {
-    //     var targetRef = fire.database().ref('users/' + props.report.data.target);
-    //     targetRef.on('value', function (snapshot) {
-    //         target = snapshot.val();
-    //     });
-    // }
-    // console.log(target)
 
     var reportDate = new Date(props.report.data.when);
     return (
@@ -199,10 +175,7 @@ function ReportModal(props) {
                     </div>
                     <form id={props.report.id} onSubmit={props.onSubmit}>
                         <div className="modal-body">
-                            {/* <div className="col-12 row">
-                            ID: {props.report.id}
-                        </div>
-                        <br /> */}
+
                             <div className="col-12 row d-flex align-items-center">
                                 <div className="col-6">Title: <input className="form-control" value={props.report.data.title} disabled="disabled" /></div>
                                 {owner.Profile ?
@@ -234,9 +207,6 @@ function ReportModal(props) {
                                 {reportDate.toString()}
                             </div>
                             <br />
-                            {/* <div className="col-12 row d-flex align-items-center">
-                            <div className="col-6">Status: {props.report.data.status}</div>
-                        </div> */}
 
                         </div>
                         <div className="modal-footer">
@@ -244,7 +214,6 @@ function ReportModal(props) {
                             {props.report.data.status === "inprogress" ?
                                 <button type="submit"
                                     value={props.report.id}
-                                    // onClick={props.onClick}
                                     name="submitBtn"
                                     className="btn btn-primary"
                                     disabled={props.report.data.status === "inprogress" ? "" : "disabled"}>

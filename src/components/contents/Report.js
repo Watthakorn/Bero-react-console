@@ -3,12 +3,6 @@ import fire from '../../fire';
 import '../../css/bero.css';
 import { connect } from "react-redux";
 
-// var allReport = [];
-// var reportsRef = fire.database().ref('reports');
-// reportsRef.on('child_added', snap => {
-//     let report = { id: snap.key, data: snap.val() }
-//     allReport.push(report);
-// });
 
 class Report extends Component {
 
@@ -22,29 +16,6 @@ class Report extends Component {
 
     componentWillMount() {
 
-        // reportsRef.on('child_changed', snap => {
-        //     let report = { id: snap.key, data: snap.val() }
-        //     for (let i in allReport) {
-        //         if (allReport[i].id === report.id) {
-        //             allReport[i].data = report.data;
-        //             break;
-        //         }
-        //     }
-        //     this.props.addReport(allReport);
-        // });
-        // reportsRef.on('child_removed', snap => {
-        //     let remove = snap.key;
-        //     for (let i in allReport) {
-        //         if (allReport[i].id === remove) {
-        //             allReport.splice(i, 1)
-        //             break;
-        //         }
-        //     }
-        //     this.props.addReport(allReport);
-        // });
-
-
-        // this.props.addReport(allReport);
 
     }
 
@@ -53,7 +24,6 @@ class Report extends Component {
         this.setState({
             pagenumber: e.target.value,
         })
-        // console.log(e.target.value)
     }
 
     _handleSave(e) {
@@ -62,14 +32,12 @@ class Report extends Component {
         fire.database().ref('reports/' + e.target.id).update({
             status: "done",
         });
-        // console.log("hey wake up!");
         e.target.submitBtn.disabled = "disabled";
     }
 
     render() {
         const props = this.props;
         const reports = props.reports.reports;
-        // console.log(reports);
 
         return (
             <div>
@@ -229,87 +197,6 @@ function ReportCard(props) {
 }
 
 
-// function ReportModals(props) {
-//     var reportmodals = [];
-//     var allReport = props.allReport;
-//     if (allReport) {
-//         for (let index = 0; index < allReport.length; index++) {
-//             let report = allReport[index];
-//             reportmodals.push(<ReportModal key={report.id} report={report} reportNo={index + 1} target={report.id} onClick={props.onClick} onSubmit={props.onSubmit} />);
-//         }
-//     }
-//     return reportmodals;
-
-// }
-// function ReportModal(props) {
-//     var target = [];
-//     var owner = [];
-//     if (props.report.data.target) {
-//         fire.database().ref('users/' + props.report.data.target).once('value').then(function (snapshot) {
-//             // var username = (snapshot.val() && snapshot.val().username) || 'Anonymous';
-//             target = snapshot.val();
-//             // console.log(snapshot.val())
-//             console.log(target.Profile);
-//         });
-//     }
-//     return (
-//         <div className="modal fade" id={props.target} role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-//             <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
-//                 <div className="modal-content">
-//                     <div className="modal-header">
-//                         <h5 className="modal-title" id="exampleModalLongTitle">Report: {props.report.data.title}</h5>
-//                         <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-//                             <span aria-hidden="true">&times;</span>
-//                         </button>
-//                     </div>
-//                     <form id={props.report.id} onSubmit={props.onSubmit}>
-//                         <div className="modal-body">
-//                             {/* <div className="col-12 row">
-//                             ID: {props.report.id}
-//                         </div>
-//                         <br /> */}
-//                             <div className="col-12 row d-flex align-items-center">
-//                                 <div className="col-6">Title: <input className="form-control" value={props.report.data.title} disabled="disabled" /></div>
-//                                 <div className="col-6">Owner: <input className="form-control" value={props.report.data.owner} disabled="disabled" /></div>
-//                             </div>
-//                             {target.Profile ?
-//                                 <div>
-//                                     <br />
-//                                     <div className="col-12 row d-flex align-items-center">
-//                                         <div className="col-6"></div>
-//                                         <div className="col-6">Target: <input className="form-control" value={target.Profile.displayName} disabled="disabled" /></div>
-//                                     </div>
-//                                 </div> : ''}
-//                             <br />
-//                             <div className="col-12 row d-flex align-items-center">
-//                                 <div className="col-12">Detail: <textarea className="form-control" value={props.report.data.title} disabled="disabled" /></div>
-//                             </div>
-//                             <br />
-//                             {/* <div className="col-12 row d-flex align-items-center">
-//                             <div className="col-6">Status: {props.report.data.status}</div>
-//                         </div> */}
-
-//                         </div>
-//                         <div className="modal-footer">
-//                             <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-//                             {props.report.data.status === "inprogress" ?
-//                                 <button type="submit"
-//                                     value={props.report.id}
-//                                     // onClick={props.onClick}
-//                                     name="submitBtn"
-//                                     className="btn btn-primary"
-//                                     disabled={props.report.data.status === "inprogress" ? "" : "disabled"}>
-//                                     Done</button>
-//                                 : ''}
-
-//                         </div>
-//                     </form>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-
-// }
 
 
 const mapStateToProps = (state) => {

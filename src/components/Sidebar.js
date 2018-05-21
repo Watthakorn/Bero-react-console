@@ -31,8 +31,6 @@ class Sidebar extends Component {
                 // var user = result.user;
                 // console.log("dwdwd");
                 // ...
-
-                // console.log(user.providerData[0].uid);
             }).catch(function (error) {
                 // Handle Errors here.
                 // var errorCode = error.code;
@@ -83,12 +81,9 @@ class Sidebar extends Component {
                     <div className="card">
                         <div className="card-body">
                             <div className="d-flex">
-                                {/* <i className="fa fa-address-card-o" /> */}
                                 <AlreadyLogin user={user} />
-                                {/* {JSON.stringify(this.state.user)} */}
                             </div>
                             {button}
-                            {/* {JSON.stringify(this.props.user.user)} */}
                         </div>
                     </div>
                     {user ? user.type === "Admin" ?

@@ -14,12 +14,23 @@ usersRef.on('child_added', snap => {
 });
 
 class Header extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            unreadId: [],
+            rLength: 0,
+        };
+    }
 
     componentWillMount() {
         reportsRef.on('child_added', snap => {
             let report = { id: snap.key, data: snap.val() }
             allReport.push(report);
             this.props.addReport(allReport);
+            if (report.data.status === "inprogress" && !(report.data.read)) {
+                this.setState({ rLength: this.state.rLength + 1 })
+                this.setState({ unreadId: [...this.state.unreadId, report.id] })
+            }
         });
 
         reportsRef.on('child_changed', snap => {
@@ -47,6 +58,7 @@ class Header extends Component {
         this.props.addReport(allReport);
         this.props.addUsers(allUser);
 
+
     }
 
     _handleSave(e) {
@@ -55,6 +67,21 @@ class Header extends Component {
             status: "done",
         });
         e.target.submitBtn.disabled = "disabled";
+    }
+
+
+    _handleEnter(e) {
+        var readId = e.target.value
+        var unread = [...this.state.unreadId]
+        var index = unread.indexOf(readId);
+        if (e.target.value && index !== -1) {
+            fire.database().ref('reports/' + readId).update({
+                read: 1,
+            });
+            unread.splice(index, 1);
+            this.setState({ rLength: this.state.rLength - 1 })
+            this.setState({ unreadId: unread });
+        }
     }
 
     render() {
@@ -77,7 +104,7 @@ class Header extends Component {
                             <div className="d-flex align-items-center">
                                 <div className="col-12">
                                     {user ? user.type === "Admin" ?
-                                        <NotiBell reports={reports} />
+                                        <NotiBell reports={reports} reportLength={this.state.rLength} onMouseEnter={(e) => this._handleEnter(e)} />
                                         : '' : ''
                                     }
                                 </div>
@@ -94,21 +121,14 @@ class Header extends Component {
 
 function NotiBell(props) {
     var reports = props.reports;
-    var reportLength = 0;
-
-    for (let index = 0; index < reports.length; index++) {
-        let report = reports[index];
-        if (report.data.status === "inprogress") {
-            reportLength += 1;
-        }
-    }
+    var reportLength = props.reportLength;
     return (
-        <div className="btn-group">
+        <div className="btn-group" >
             <button className="btn btn-outline-dark btn-sm dropdown-toggle" data-toggle="dropdown"><i className="fa fa-bell"></i>
                 {reportLength === 0 ? '' : <a className="badge badge-danger text-light">{reportLength}</a>}
             </button>
             <div className="dropdown-menu dropdown-menu-right">
-                <ReportNoti allReport={reports} />
+                <ReportNoti allReport={reports} onMouseEnter={props.onMouseEnter} />
                 <Link style={{ "textAlign": "center", "color": "blue" }} className="dropdown-item" to="/report"> All report</Link>
             </div>
         </div>
@@ -124,7 +144,17 @@ function ReportNoti(props) {
     if (allReport) {
         for (let index = 0; index < allReport.length; index++) {
             let report = allReport[index];
-            if (report.data.status === "inprogress") {
+            if (report.data.status === "inprogress" && !(report.data.read)) {
+                reportcards.push(<div key={report.id}>
+                    <button className="dropdown-item noti-overflow" style={{ backgroundColor: "#f3f3f3" }} type="button" onMouseEnter={props.onMouseEnter} value={report.id} data-toggle="modal" data-target={"#" + report.id}><i className="fa fa-file-text-o" /> {report.data.title}
+                        <div className="col-12 font-weight-light d-flex justify-content-end" style={{ paddingTop: "1px", fontSize: "12px" }}>
+                            {Math.floor((Date.now() - report.data.when) / 3600000) + ' hr ' +
+                                Math.floor((((Date.now() - report.data.when) / 3600000) % 1) * 60) + ' min ago'}
+                        </div>
+                    </button>
+                    <div className="dropdown-divider"></div>
+                </div>);
+            } else if (report.data.status === "inprogress") {
                 reportcards.push(<div key={report.id}>
                     <button className="dropdown-item noti-overflow" type="button" data-toggle="modal" data-target={"#" + report.id}><i className="fa fa-file-text-o" /> {report.data.title}
                         <div className="col-12 font-weight-light d-flex justify-content-end" style={{ paddingTop: "1px", fontSize: "12px" }}>
@@ -215,7 +245,7 @@ function ReportModal(props) {
                                 <button type="submit"
                                     value={props.report.id}
                                     name="submitBtn"
-                                    className="btn btn-primary"
+                                    className="btn btn-success"
                                     disabled={props.report.data.status === "inprogress" ? "" : "disabled"}>
                                     Done</button>
                                 : ''}
